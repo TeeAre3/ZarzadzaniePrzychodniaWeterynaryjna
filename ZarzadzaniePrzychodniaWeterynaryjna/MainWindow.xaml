@@ -49,9 +49,10 @@
 
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#ECF0F1" Height="65">
-            <Button Content="📅 Terminarz" Command="{Binding PokazTerminarzCommand}" Style="{StaticResource TopMenuButtonStyle}" Margin="15,10,5,10"/>
-            <Button Content="👥 Klienci i Pacjenci" Command="{Binding PokazKlienciCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
-            <Button Content="📦 Katalog Usług" Command="{Binding PokazKatalogCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Terminarz" Command="{Binding PokazTerminarzCommand}" Style="{StaticResource TopMenuButtonStyle}" Margin="15,10,5,10"/>
+            <Button Content="Klienci i Pacjenci" Command="{Binding PokazKlienciCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Katalog Usług" Command="{Binding PokazKatalogCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Podsumowanie (Finanse)" Command="{Binding PokazStatystykiCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
         </StackPanel>
 
         <ContentControl Content="{Binding AktualnyWidok}">
@@ -67,6 +68,10 @@
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type viewmodels:KatalogViewModel}">
                     <views:KatalogView />
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type viewmodels:StatystykiViewModel}">
+                    <views:StatystykiView />
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>

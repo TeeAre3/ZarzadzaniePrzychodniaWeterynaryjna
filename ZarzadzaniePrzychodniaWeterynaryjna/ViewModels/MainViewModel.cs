@@ -11,6 +11,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         public HarmonogramViewModel HarmonogramVM { get; } = new();
         public GabinetViewModel GabinetVM { get; } = new();
 
+        public StatystykiViewModel StatystykiVM { get; } = new();
+
         [ObservableProperty]
         private object _aktualnyWidok;
 
@@ -30,13 +32,10 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             });
         }
 
-        [RelayCommand]
-        private void PokazTerminarz() => AktualnyWidok = HarmonogramVM;
+        [RelayCommand] private void PokazTerminarz() => AktualnyWidok = HarmonogramVM;
+        [RelayCommand] private void PokazKlienci() => AktualnyWidok = KlienciVM;
+        [RelayCommand] private void PokazKatalog() => AktualnyWidok = KatalogVM;
 
-        [RelayCommand]
-        private void PokazKlienci() => AktualnyWidok = KlienciVM;
-
-        [RelayCommand]
-        private void PokazKatalog() => AktualnyWidok = KatalogVM;
+        [RelayCommand] private void PokazStatystyki() => AktualnyWidok = StatystykiVM;
     }
 }
