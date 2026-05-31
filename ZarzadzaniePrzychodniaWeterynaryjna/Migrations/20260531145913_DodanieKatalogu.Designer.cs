@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
@@ -11,9 +12,11 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531145913_DodanieKatalogu")]
+    partial class DodanieKatalogu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,53 +24,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Harmonogram", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_rezerwacji");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("PlanowanaDataRozpoczecia")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Planowana_Data_Rozpoczęcia");
-
-                    b.Property<DateTime?>("RzeczywistyCzasRozpoczecia")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Rzeczywisty_Czas_Rozpoczęcia");
-
-                    b.Property<DateTime?>("RzeczywistyCzasZakonczenia")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Rzeczywisty_Czas_Zakończenia");
-
-                    b.Property<string>("StatusWizyty")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Status_Wizyty");
-
-                    b.Property<int>("SzacowanyCzasTrwania")
-                        .HasColumnType("int")
-                        .HasColumnName("Szacowany_czas_trwania");
-
-                    b.Property<int>("ZwierzeId")
-                        .HasColumnType("int")
-                        .HasColumnName("id_zwierzęcia");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ZwierzeId");
-
-                    b.ToTable("Harmonogram", t =>
-                        {
-                            t.HasCheckConstraint("CHK_Czas_Rzeczywisty", "[Rzeczywisty_Czas_Rozpoczęcia] <= CURRENT_TIMESTAMP");
-
-                            t.HasCheckConstraint("CHK_Czas_Zakon", "[Rzeczywisty_Czas_Zakończenia] >= [Rzeczywisty_Czas_Rozpoczęcia]");
-                        });
-                });
 
             modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Katalog", b =>
                 {
@@ -219,17 +175,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
                         {
                             t.HasCheckConstraint("CHK_Zwierze_Waga", "[waga] > 0");
                         });
-                });
-
-            modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Harmonogram", b =>
-                {
-                    b.HasOne("ZarzadzaniePrzychodniaWeterynaryjna.Models.Zwierze", "Zwierze")
-                        .WithMany()
-                        .HasForeignKey("ZwierzeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Zwierze");
                 });
 
             modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Zwierze", b =>

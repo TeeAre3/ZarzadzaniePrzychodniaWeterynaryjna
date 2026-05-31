@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="ZarzadzaniePrzychodniaWeterynaryjna.Views.KatalogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer Grid.Column="0" Margin="0,0,15,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Nowa pozycja cennika" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" />
+                <TextBlock Text="Nazwa (*):" Margin="0,0,0,2"/>
+                <TextBox Text="{Binding NowyKatalogNazwa, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
+                <TextBlock Text="Typ:" Margin="0,0,0,2"/>
+                <ComboBox SelectedIndex="{Binding NowyKatalogTypIndex}" Margin="0,0,0,10" Padding="5">
+                    <ComboBoxItem Content="Usługa" />
+                    <ComboBoxItem Content="Towar" />
+                    <ComboBoxItem Content="Lek" />
+                </ComboBox>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                        <TextBlock Text="Cena (netto):" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding NowyKatalogCena, UpdateSourceTrigger=PropertyChanged}" Padding="3" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                        <TextBlock Text="VAT (%):" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding NowyKatalogVAT, UpdateSourceTrigger=PropertyChanged}" Padding="3" />
+                    </StackPanel>
+                </Grid>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                        <TextBlock Text="Jedn. miary:" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding NowyKatalogJednostka, UpdateSourceTrigger=PropertyChanged}" Padding="3" ToolTip="np. szt, ml, op" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                        <TextBlock Text="Czas (min):" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding NowyKatalogCzasMin, UpdateSourceTrigger=PropertyChanged}" Padding="3" />
+                    </StackPanel>
+                </Grid>
+                <Button Content="Zapisz do Katalogu" Command="{Binding DodajKatalogCommand}" Padding="8" Background="#17A2B8" Foreground="White" FontWeight="Bold" Cursor="Hand" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <DataGrid Grid.Column="1" ItemsSource="{Binding KatalogLista}" AutoGenerateColumns="False" IsReadOnly="True" RowBackground="#F9F9F9" AlternatingRowBackground="White">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="35"/>
+                <DataGridTextColumn Header="Typ" Binding="{Binding Typ}" Width="70" />
+                <DataGridTextColumn Header="Nazwa" Binding="{Binding Nazwa}" Width="*" />
+                <DataGridTextColumn Header="Cena netto" Binding="{Binding CenaEwidencyjna, StringFormat={}{0:N2} zł}" />
+                <DataGridTextColumn Header="VAT" Binding="{Binding VAT, StringFormat={}{0}%}" />
+                <DataGridTextColumn Header="Jednostka" Binding="{Binding JednostkaMiary}" />
+                <DataGridTextColumn Header="Czas (min)" Binding="{Binding CzasTrwaniaWMin}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

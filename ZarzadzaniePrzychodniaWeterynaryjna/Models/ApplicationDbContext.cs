@@ -6,6 +6,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
     {
         public DbSet<Wlasciciel> Wlasciciele { get; set; } = null!;
         public DbSet<Zwierze> Zwierzeta { get; set; } = null!;
+        public DbSet<Katalog> Katalogi { get; set; } = null!;
+        public DbSet<Harmonogram> Harmonogramy { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -33,6 +35,21 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
                 entity.Property(z => z.Waga).HasColumnType("decimal(5,2)");
 
                 entity.HasCheckConstraint("CHK_Zwierze_Waga", "[waga] > 0");
+            });
+
+            modelBuilder.Entity<Katalog>(entity =>
+            {
+                entity.Property(k => k.CenaEwidencyjna).HasColumnType("decimal(8,2)");
+
+                entity.Property(k => k.VAT).HasColumnType("decimal(5,2)");
+
+                entity.HasCheckConstraint("CHK_Katalog_Cena", "[Cena_Ewidencyjna] >= 0");
+            });
+
+            modelBuilder.Entity<Harmonogram>(entity =>
+            {
+                entity.HasCheckConstraint("CHK_Czas_Rzeczywisty", "[Rzeczywisty_Czas_Rozpoczęcia] <= CURRENT_TIMESTAMP");
+                entity.HasCheckConstraint("CHK_Czas_Zakon", "[Rzeczywisty_Czas_Zakończenia] >= [Rzeczywisty_Czas_Rozpoczęcia]");
             });
         }
     }
