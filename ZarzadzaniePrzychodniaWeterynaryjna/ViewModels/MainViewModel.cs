@@ -6,5 +6,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
     {
         public KlienciPacjenciViewModel KlienciVM { get; } = new();
         public KatalogViewModel KatalogVM { get; } = new();
+        public HarmonogramViewModel HarmonogramVM { get; } = new();
     }
 }

@@ -17,5 +17,9 @@
         <TabItem Header="Katalog (Usługi / Towary)" FontSize="14">
             <views:KatalogView DataContext="{Binding KatalogVM}" />
         </TabItem>
+
+        <TabItem Header="Terminarz Wizyt" FontSize="14">
+            <views:HarmonogramView DataContext="{Binding HarmonogramVM}" />
+        </TabItem>
     </TabControl>
 </Window>

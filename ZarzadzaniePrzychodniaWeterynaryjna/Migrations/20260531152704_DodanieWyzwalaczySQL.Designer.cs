@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
@@ -11,9 +12,11 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531152704_DodanieWyzwalaczySQL")]
+    partial class DodanieWyzwalaczySQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,14 +66,10 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
 
                     b.ToTable("Harmonogram", t =>
                         {
-                            t.HasTrigger("trg_BlokadaKonfliktowCzasowych");
-
                             t.HasCheckConstraint("CHK_Czas_Rzeczywisty", "[Rzeczywisty_Czas_Rozpoczęcia] <= CURRENT_TIMESTAMP");
 
                             t.HasCheckConstraint("CHK_Czas_Zakon", "[Rzeczywisty_Czas_Zakończenia] >= [Rzeczywisty_Czas_Rozpoczęcia]");
                         });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Katalog", b =>
@@ -115,42 +114,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
                         {
                             t.HasCheckConstraint("CHK_Katalog_Cena", "[Cena_Ewidencyjna] >= 0");
                         });
-                });
-
-            modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.WizytaMedyczna", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_wizyty");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DataWizyty")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("Data_Wizyty");
-
-                    b.Property<string>("OpisWywiadu")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Opis_Wywiadu");
-
-                    b.Property<int>("RezerwacjaId")
-                        .HasColumnType("int")
-                        .HasColumnName("id_rezerwacji");
-
-                    b.Property<string>("Rozpoznanie")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Rozpoznanie");
-
-                    b.Property<string>("Zalecenia")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Zalecenia");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RezerwacjaId");
-
-                    b.ToTable("Wizyta_Medyczna");
                 });
 
             modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Wlasciciel", b =>
@@ -270,17 +233,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Migrations
                         .IsRequired();
 
                     b.Navigation("Zwierze");
-                });
-
-            modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.WizytaMedyczna", b =>
-                {
-                    b.HasOne("ZarzadzaniePrzychodniaWeterynaryjna.Models.Harmonogram", "Rezerwacja")
-                        .WithMany()
-                        .HasForeignKey("RezerwacjaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Rezerwacja");
                 });
 
             modelBuilder.Entity("ZarzadzaniePrzychodniaWeterynaryjna.Models.Zwierze", b =>

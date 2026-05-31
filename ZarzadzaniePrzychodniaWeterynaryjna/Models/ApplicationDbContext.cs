@@ -8,6 +8,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         public DbSet<Zwierze> Zwierzeta { get; set; } = null!;
         public DbSet<Katalog> Katalogi { get; set; } = null!;
         public DbSet<Harmonogram> Harmonogramy { get; set; } = null!;
+        public DbSet<WizytaMedyczna> Wizyty { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -48,6 +49,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
             modelBuilder.Entity<Harmonogram>(entity =>
             {
+                entity.ToTable(tb => tb.HasTrigger("trg_BlokadaKonfliktowCzasowych"));
+
                 entity.HasCheckConstraint("CHK_Czas_Rzeczywisty", "[Rzeczywisty_Czas_Rozpoczęcia] <= CURRENT_TIMESTAMP");
                 entity.HasCheckConstraint("CHK_Czas_Zakon", "[Rzeczywisty_Czas_Zakończenia] >= [Rzeczywisty_Czas_Rozpoczęcia]");
             });

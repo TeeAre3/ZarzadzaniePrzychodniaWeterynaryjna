@@ -4,6 +4,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
@@ -46,7 +47,13 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
             using (var db = new ApplicationDbContext())
             {
-                try { db.Katalogi.Add(nowaPozycja); db.SaveChanges(); MessageBox.Show("Dodano pozycję!", "Sukces"); }
+                try 
+                { 
+                    db.Katalogi.Add(nowaPozycja);
+                    db.SaveChanges(); 
+                    WeakReferenceMessenger.Default.Send(new KatalogZmienionyMessage()); 
+                    MessageBox.Show("Dodano pozycję!", "Sukces"); 
+                }
                 catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
             }
 
