@@ -45,7 +45,8 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nr" Binding="{Binding Id}" Width="40"/>
                 <DataGridTextColumn Header="Data" Binding="{Binding PlanowanaDataRozpoczecia, StringFormat=dd.MM.yyyy HH:mm}" Width="120" />
-                <DataGridTextColumn Header="Pacjent" Binding="{Binding Zwierze.Imie}" Width="*" />
+                <DataGridTextColumn Header="Pacjent" Binding="{Binding Zwierze.Imie}" Width="100" />
+                <DataGridTextColumn Header="Powód" Binding="{Binding PowodWizyty}" Width="*" />
                 <DataGridTextColumn Header="Czas (min)" Binding="{Binding SzacowanyCzasTrwania}" Width="80"/>
                 <DataGridTextColumn Header="Status" Binding="{Binding StatusWizyty}" Width="100" />
             </DataGrid.Columns>

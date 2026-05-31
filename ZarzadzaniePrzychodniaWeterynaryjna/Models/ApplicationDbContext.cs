@@ -9,6 +9,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         public DbSet<Katalog> Katalogi { get; set; } = null!;
         public DbSet<Harmonogram> Harmonogramy { get; set; } = null!;
         public DbSet<WizytaMedyczna> Wizyty { get; set; } = null!;
+        public DbSet<PozycjaWizyty> PozycjeWizyt { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -53,6 +54,12 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
                 entity.HasCheckConstraint("CHK_Czas_Rzeczywisty", "[Rzeczywisty_Czas_Rozpoczęcia] <= CURRENT_TIMESTAMP");
                 entity.HasCheckConstraint("CHK_Czas_Zakon", "[Rzeczywisty_Czas_Zakończenia] >= [Rzeczywisty_Czas_Rozpoczęcia]");
+            });
+
+            modelBuilder.Entity<PozycjaWizyty>(entity =>
+            {
+                entity.HasCheckConstraint("CHK_PozycjaWizyty_Ilosc", "[Ilosc] > 0");
+                entity.HasCheckConstraint("CHK_PozycjaWizyty_Cena", "[Cena_Zastosowana] >= 0");
             });
         }
     }

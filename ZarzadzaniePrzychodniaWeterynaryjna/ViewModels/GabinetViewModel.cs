@@ -5,7 +5,6 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.EntityFrameworkCore;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
@@ -19,6 +18,17 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private string _noweRozpoznanie = string.Empty;
         [ObservableProperty] private string _noweZalecenia = string.Empty;
 
+        [ObservableProperty] private ObservableCollection<Katalog> _katalogDostepny = new();
+        [ObservableProperty] private ObservableCollection<PozycjaWizyty> _dodanePozycje = new();
+        [ObservableProperty] private Katalog? _wybranyElementKatalogu;
+        [ObservableProperty] private decimal _nowaIlosc = 1;
+        [ObservableProperty] private decimal _sumaCalkowita = 0;
+
+        public GabinetViewModel()
+        {
+            WeakReferenceMessenger.Default.Register<KatalogZmienionyMessage>(this, (r, m) => ZaladujKatalog());
+        }
+
         public void RozpocznijWizyte(Harmonogram rezerwacja)
         {
             AktywnaRezerwacja = rezerwacja;
@@ -27,7 +37,12 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             NoweRozpoznanie = string.Empty;
             NoweZalecenia = string.Empty;
 
+            DodanePozycje.Clear();
+            NowaIlosc = 1;
+            SumaCalkowita = 0;
+
             ZaladujHistorie(rezerwacja.ZwierzeId);
+            ZaladujKatalog();
         }
 
         private void ZaladujHistorie(int zwierzeId)
@@ -39,6 +54,49 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 .ToList();
 
             HistoriaWizyt = new ObservableCollection<WizytaMedyczna>(historia);
+        }
+
+        private void ZaladujKatalog()
+        {
+            using var db = new ApplicationDbContext();
+            KatalogDostepny = new ObservableCollection<Katalog>(db.Katalogi.OrderBy(k => k.Nazwa).ToList());
+        }
+
+        [RelayCommand]
+        private void DodajPozycje()
+        {
+            if (WybranyElementKatalogu == null) return;
+            if (NowaIlosc <= 0) { MessageBox.Show("Ilość musi być większa od 0.", "Błąd"); return; }
+
+            var nowaPozycja = new PozycjaWizyty
+            {
+                KatalogId = WybranyElementKatalogu.Id,
+                Katalog = WybranyElementKatalogu, 
+                Ilosc = NowaIlosc,
+                CenaZastosowana = WybranyElementKatalogu.CenaEwidencyjna,
+                VATZastosowany = WybranyElementKatalogu.VAT
+            };
+
+            DodanePozycje.Add(nowaPozycja);
+            PrzeliczSume();
+
+            NowaIlosc = 1;
+            WybranyElementKatalogu = null;
+        }
+
+        [RelayCommand]
+        private void UsunPozycje(PozycjaWizyty pozycja)
+        {
+            if (pozycja != null)
+            {
+                DodanePozycje.Remove(pozycja);
+                PrzeliczSume();
+            }
+        }
+
+        private void PrzeliczSume()
+        {
+            SumaCalkowita = DodanePozycje.Sum(p => p.CenaZastosowana * p.Ilosc * (1 + (p.VATZastosowany / 100m)));
         }
 
         [RelayCommand]
@@ -65,6 +123,19 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                         Zalecenia = string.IsNullOrWhiteSpace(NoweZalecenia) ? null : NoweZalecenia
                     };
                     db.Wizyty.Add(nowaWizyta);
+                    db.SaveChanges(); 
+
+                    foreach (var poz in DodanePozycje)
+                    {
+                        db.PozycjeWizyt.Add(new PozycjaWizyty
+                        {
+                            WizytaId = nowaWizyta.Id,
+                            KatalogId = poz.KatalogId,
+                            Ilosc = poz.Ilosc,
+                            CenaZastosowana = poz.CenaZastosowana,
+                            VATZastosowany = poz.VATZastosowany
+                        });
+                    }
 
                     var rezerwacjaWBazie = db.Harmonogramy.Find(AktywnaRezerwacja.Id);
                     if (rezerwacjaWBazie != null) rezerwacjaWBazie.StatusWizyty = "Zrealizowana";
@@ -72,12 +143,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                     db.SaveChanges();
 
                     AktywnaRezerwacja = null;
-
-                    NowyWywiad = string.Empty;
-                    NoweRozpoznanie = string.Empty;
-                    NoweZalecenia = string.Empty;
-
-                    MessageBox.Show("Wizyta została pomyślnie zapisana i zakończona.", "Sukces");
+                    MessageBox.Show($"Wizyta zakończona. Suma do zapłaty: {SumaCalkowita:N2} zł", "Sukces");
 
                     WeakReferenceMessenger.Default.Send(new WizytaZakonczonaMessage());
                 }

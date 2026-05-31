@@ -29,5 +29,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
         [Column("Zalecenia")]
         public string? Zalecenia { get; set; }
+
+        public virtual ICollection<PozycjaWizyty> WykorzystaneUslugiILeki { get; set; } = new List<PozycjaWizyty>();
     }
 }

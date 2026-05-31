@@ -24,6 +24,10 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         [Column("Szacowany_czas_trwania")]
         public int SzacowanyCzasTrwania { get; set; }
 
+        [Column("Powód_Wizyty")]
+        [MaxLength(150)]
+        public string? PowodWizyty { get; set; }
+
         [Required]
         [MaxLength(50)]
         [Column("Status_Wizyty")]

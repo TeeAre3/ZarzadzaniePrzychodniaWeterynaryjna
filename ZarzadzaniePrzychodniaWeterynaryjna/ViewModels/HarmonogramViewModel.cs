@@ -73,7 +73,14 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             {
                 try
                 {
-                    db.Harmonogramy.Add(new Harmonogram { ZwierzeId = WybraneZwierze.Id, PlanowanaDataRozpoczecia = PlanowanaData.Date.Add(TimeSpan.Parse(PlanowanaGodzina)), SzacowanyCzasTrwania = SzacowanyCzasMin, StatusWizyty = "Planowana" });
+                    db.Harmonogramy.Add(new Harmonogram
+                    {
+                        ZwierzeId = WybraneZwierze.Id,
+                        PowodWizyty = WybranaUsluga?.Nazwa,
+                        PlanowanaDataRozpoczecia = PlanowanaData.Date.Add(TimeSpan.Parse(PlanowanaGodzina)),
+                        SzacowanyCzasTrwania = SzacowanyCzasMin,
+                        StatusWizyty = "Planowana"
+                    });
                     db.SaveChanges();
                 }
                 catch (Exception ex) { MessageBox.Show($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}"); return; }

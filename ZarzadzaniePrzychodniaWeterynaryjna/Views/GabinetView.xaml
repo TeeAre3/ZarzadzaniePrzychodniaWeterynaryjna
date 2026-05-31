@@ -9,31 +9,79 @@
 
         <StackPanel Grid.Column="0" Margin="0,0,15,0">
             <TextBlock Text="Historia Pacjenta" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-            <ListBox ItemsSource="{Binding HistoriaWizyt}" Height="500">
+            <ListBox ItemsSource="{Binding HistoriaWizyt}" Height="600" BorderBrush="#DDDDDD" Background="#F9F9F9">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Margin="5">
-                            <TextBlock Text="{Binding DataWizyty, StringFormat=dd.MM.yyyy}" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Rozpoznanie}" TextWrapping="Wrap"/>
+                        <StackPanel Margin="5,5,5,15">
+                            <TextBlock Text="{Binding DataWizyty, StringFormat=dd.MM.yyyy HH:mm}" FontWeight="Bold" Foreground="#2C3E50"/>
+                            <TextBlock Text="{Binding Rozpoznanie}" TextWrapping="Wrap" FontStyle="Italic" Margin="0,2,0,0"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </StackPanel>
 
-        <StackPanel Grid.Column="1">
-            <TextBlock Text="Wizyta Medyczna" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+            <StackPanel>
+                <TextBlock Text="Karta Wizyty Medycznej" FontSize="20" FontWeight="Bold" Margin="0,0,0,15" Foreground="#2C3E50"/>
 
-            <TextBlock Text="Wywiad:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding NowyWywiad, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+                <TextBlock Text="Wywiad:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding NowyWywiad, UpdateSourceTrigger=PropertyChanged}" Height="60" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Rozpoznanie:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding NoweRozpoznanie, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+                <TextBlock Text="Rozpoznanie:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding NoweRozpoznanie, UpdateSourceTrigger=PropertyChanged}" Height="60" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Zalecenia:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding NoweZalecenia, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+                <TextBlock Text="Zalecenia:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding NoweZalecenia, UpdateSourceTrigger=PropertyChanged}" Height="60" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,15"/>
 
-            <Button Content="Zakończ wizytę i zapisz" Command="{Binding ZakonczWizyteCommand}" Margin="0,20,0,0" Padding="10" Background="#28A745" Foreground="White"/>
-        </StackPanel>
+                <Separator Margin="0,10,0,15"/>
+
+                <TextBlock Text="Rozliczenie wizyty (Leki i Usługi)" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Wybierz pozycję z Katalogu:" Margin="0,0,0,2"/>
+                        <ComboBox ItemsSource="{Binding KatalogDostepny}" SelectedItem="{Binding WybranyElementKatalogu}" DisplayMemberPath="Nazwa" Padding="5"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                        <TextBlock Text="Ilość:" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding NowaIlosc, UpdateSourceTrigger=PropertyChanged}" Padding="5" TextAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <Button Grid.Column="2" Content="Dodaj" Command="{Binding DodajPozycjeCommand}" Background="#17A2B8" Foreground="White" VerticalAlignment="Bottom" Height="30"/>
+                </Grid>
+
+                <DataGrid ItemsSource="{Binding DodanePozycje}" AutoGenerateColumns="False" IsReadOnly="True" Height="150" Margin="0,0,0,15">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nazwa" Binding="{Binding Katalog.Nazwa}" Width="*"/>
+                        <DataGridTextColumn Header="Ilość" Binding="{Binding Ilosc}" Width="60"/>
+                        <DataGridTextColumn Header="Cena Netto" Binding="{Binding CenaZastosowana, StringFormat={}{0:N2} zł}" Width="90"/>
+                        <DataGridTextColumn Header="VAT" Binding="{Binding VATZastosowany, StringFormat={}{0}%}" Width="60"/>
+                        
+                        <DataGridTemplateColumn Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Usuń" Command="{Binding DataContext.UsunPozycjeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="#DC3545" Foreground="White" Padding="5,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,20">
+                    <TextBlock Text="Suma do zapłaty (brutto):" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding SumaCalkowita, StringFormat={}{0:N2} zł}" FontSize="20" FontWeight="Bold" Foreground="#28A745" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <Button Content="Zakończ wizytę i zapisz" Command="{Binding ZakonczWizyteCommand}" Padding="15" Background="#28A745" Foreground="White" FontSize="16"/>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>
