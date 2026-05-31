@@ -43,7 +43,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         [ForeignKey(nameof(WlascicielId))]
         public Wlasciciel Wlasciciel { get; set; } = null!;
 
-        public virtual ICollection<WizytaMedyczna> HistorieWizyt { get; set; } = new List<WizytaMedyczna>();
     }
 
 }

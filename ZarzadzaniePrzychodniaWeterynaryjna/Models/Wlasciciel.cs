@@ -36,6 +36,21 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         [Column("Data_rejestracji")]
         public DateTime DataRejestracji { get; set; } = DateTime.Now;
 
+        [NotMapped]
+        public string WyswietlanaNazwa
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(NazwaFirmy) && !string.IsNullOrWhiteSpace(Nazwisko))
+                    return $"{NazwaFirmy} ({Imie} {Nazwisko})";
+
+                if (!string.IsNullOrWhiteSpace(NazwaFirmy))
+                    return NazwaFirmy;
+
+                return $"{Imie} {Nazwisko}".Trim();
+            }
+        }
+
         public ICollection<Zwierze> Zwierzeta { get; set; } = new List<Zwierze>();
     }
 }

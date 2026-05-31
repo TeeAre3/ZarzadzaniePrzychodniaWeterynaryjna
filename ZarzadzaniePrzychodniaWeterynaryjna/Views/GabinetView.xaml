@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="ZarzadzaniePrzychodniaWeterynaryjna.Views.GabinetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="0,0,15,0">
+            <TextBlock Text="Historia Pacjenta" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+            <ListBox ItemsSource="{Binding HistoriaWizyt}" Height="500">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="5">
+                            <TextBlock Text="{Binding DataWizyty, StringFormat=dd.MM.yyyy}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Rozpoznanie}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <TextBlock Text="Wizyta Medyczna" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Wywiad:" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding NowyWywiad, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+
+            <TextBlock Text="Rozpoznanie:" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding NoweRozpoznanie, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+
+            <TextBlock Text="Zalecenia:" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding NoweZalecenia, UpdateSourceTrigger=PropertyChanged}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+
+            <Button Content="Zakończ wizytę i zapisz" Command="{Binding ZakonczWizyteCommand}" Margin="0,20,0,0" Padding="10" Background="#28A745" Foreground="White"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

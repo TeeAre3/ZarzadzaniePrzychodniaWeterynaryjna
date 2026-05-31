@@ -3,23 +3,72 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewmodels="clr-namespace:ZarzadzaniePrzychodniaWeterynaryjna.ViewModels"
         xmlns:views="clr-namespace:ZarzadzaniePrzychodniaWeterynaryjna.Views"
-        Title="Zarządzanie Przychodnią Weterynaryjną" Height="700" Width="1050">
+        Title="Zarządzanie Przychodnią Weterynaryjną" 
+        Height="750" Width="1100" WindowStartupLocation="CenterScreen">
 
     <Window.DataContext>
         <viewmodels:MainViewModel />
     </Window.DataContext>
 
-    <TabControl Margin="10">
-        <TabItem Header="Klienci i Pacjenci" FontSize="14">
-            <views:KlienciPacjenciView DataContext="{Binding KlienciVM}" />
-        </TabItem>
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <TabItem Header="Katalog (Usługi / Towary)" FontSize="14">
-            <views:KatalogView DataContext="{Binding KatalogVM}" />
-        </TabItem>
+        <Style x:Key="TopMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="10,10,5,10"/>
+            <Setter Property="Padding" Value="20,10"/>
+        </Style>
+    </Window.Resources>
 
-        <TabItem Header="Terminarz Wizyt" FontSize="14">
-            <views:HarmonogramView DataContext="{Binding HarmonogramVM}" />
-        </TabItem>
-    </TabControl>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#ECF0F1" Height="65">
+            <Button Content="📅 Terminarz" Command="{Binding PokazTerminarzCommand}" Style="{StaticResource TopMenuButtonStyle}" Margin="15,10,5,10"/>
+            <Button Content="👥 Klienci i Pacjenci" Command="{Binding PokazKlienciCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="📦 Katalog Usług" Command="{Binding PokazKatalogCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+        </StackPanel>
+
+        <ContentControl Content="{Binding AktualnyWidok}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type viewmodels:HarmonogramViewModel}">
+                    <views:HarmonogramView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type viewmodels:GabinetViewModel}">
+                    <views:GabinetView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type viewmodels:KlienciPacjenciViewModel}">
+                    <views:KlienciPacjenciView />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type viewmodels:KatalogViewModel}">
+                    <views:KatalogView />
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
+    </DockPanel>
 </Window>

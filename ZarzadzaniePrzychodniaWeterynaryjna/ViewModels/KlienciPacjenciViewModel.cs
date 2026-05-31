@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
@@ -81,7 +82,11 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
             using (var db = new ApplicationDbContext())
             {
-                try { db.Wlasciciele.Add(nowyWlasciciel); db.SaveChanges(); MessageBox.Show("Dodano klienta!", "Sukces"); }
+                try 
+                { 
+                    db.Wlasciciele.Add(nowyWlasciciel); db.SaveChanges(); MessageBox.Show("Dodano klienta!", "Sukces");
+                    WeakReferenceMessenger.Default.Send(new WlascicielZmienionyMessage());
+                }
                 catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
             }
 
@@ -108,7 +113,11 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
             using (var db = new ApplicationDbContext())
             {
-                try { db.Zwierzeta.Add(noweZwierze); db.SaveChanges(); MessageBox.Show("Dodano pacjenta!", "Sukces"); }
+                try 
+                { 
+                    db.Zwierzeta.Add(noweZwierze); db.SaveChanges(); MessageBox.Show("Dodano pacjenta!", "Sukces");
+                    WeakReferenceMessenger.Default.Send(new ZwierzeZmienioneMessage());
+                }
                 catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
             }
 

@@ -10,82 +10,44 @@
         <ScrollViewer Grid.Column="0" Margin="0,0,15,0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <TextBlock Text="Rezerwacja Wizyty" FontSize="20" FontWeight="Bold" Margin="0,0,0,15" />
-
-                <TextBlock Text="1. Wybierz Właściciela:" FontWeight="Bold" Margin="0,0,0,2"/>
-                <ComboBox ItemsSource="{Binding WlascicieleLista}" 
-                          SelectedItem="{Binding WybranyWlasciciel}" 
-                          DisplayMemberPath="Nazwisko" 
-                          Margin="0,0,0,10" Padding="5" />
-
-                <TextBlock Text="2. Wybierz Zwierzę:" FontWeight="Bold" Margin="0,0,0,2"/>
-                <ComboBox ItemsSource="{Binding ZwierzetaLista}" 
-                          SelectedItem="{Binding WybraneZwierze}" 
-                          DisplayMemberPath="Imie" 
-                          IsEnabled="{Binding WybranyWlasciciel, Converter={x:Null}, ConverterParameter=Reverse}"
-                          Margin="0,0,0,15" Padding="5" />
-
-                <Separator Margin="0,5,0,15"/>
-
-                <TextBlock Text="3. Główny powód wizyty:" FontWeight="Bold" Margin="0,0,0,2"/>
-                <ComboBox ItemsSource="{Binding UslugiLista}" 
-                          SelectedItem="{Binding WybranaUsluga}" 
-                          DisplayMemberPath="Nazwa" 
-                          Margin="0,0,0,15" Padding="5" />
+                <TextBlock Text="1. Właściciel:" FontWeight="Bold" Margin="0,0,0,2"/>
+                <ComboBox ItemsSource="{Binding WlascicieleLista}" SelectedItem="{Binding WybranyWlasciciel}" DisplayMemberPath="WyswietlanaNazwa" Margin="0,0,0,10" Padding="5" />
+                <TextBlock Text="2. Zwierzę:" FontWeight="Bold" Margin="0,0,0,2"/>
+                <ComboBox ItemsSource="{Binding ZwierzetaLista}" SelectedItem="{Binding WybraneZwierze}" DisplayMemberPath="Imie" Margin="0,0,0,15" Padding="5" />
+                <TextBlock Text="3. Powód wizyty:" FontWeight="Bold" Margin="0,0,0,2"/>
+                <ComboBox ItemsSource="{Binding UslugiLista}" SelectedItem="{Binding WybranaUsluga}" DisplayMemberPath="Nazwa" Margin="0,0,0,15" Padding="5" />
 
                 <TextBlock Text="Data wizyty:" FontWeight="Bold" Margin="0,0,0,2"/>
                 <DatePicker SelectedDate="{Binding PlanowanaData}" Margin="0,0,0,10" Padding="3" />
-
-                <Grid Margin="0,0,0,15">
+                <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-
                     <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                        <TextBlock Text="Godzina (HH:MM):" Margin="0,0,0,2"/>
-                        <TextBox Text="{Binding PlanowanaGodzina, UpdateSourceTrigger=PropertyChanged}" Padding="3" ToolTip="Np. 14:30" />
+                        <TextBlock Text="Godzina (HH:MM):"/>
+                        <TextBox Text="{Binding PlanowanaGodzina, UpdateSourceTrigger=PropertyChanged}" Padding="3" />
                     </StackPanel>
-
                     <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                        <TextBlock Text="Wyliczony czas:" Margin="0,0,0,2" Foreground="#555" />
-                        <TextBox Text="{Binding SzacowanyCzasMin, Mode=OneWay}" 
-                                 IsReadOnly="True" 
-                                 Background="#E9ECEF"
-                                 Padding="3" ToolTip="Czas wyliczony i zaokrąglony przez system" />
+                        <TextBlock Text="Wyliczony czas:"/>
+                        <TextBox Text="{Binding SzacowanyCzasMin, Mode=OneWay}" IsReadOnly="True" Background="#E9ECEF" Padding="3" />
                     </StackPanel>
                 </Grid>
 
-                <Grid Margin="0,15,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Button Grid.Column="0" Content="Zapisz" 
-                            Command="{Binding DodajRezerwacjeCommand}" 
-                            Padding="10" Margin="0,0,5,0" Background="#FF9800" Foreground="White" FontWeight="Bold" Cursor="Hand" />
-
-                    <Button Grid.Column="1" Content="Usuń wybraną" 
-                            Command="{Binding UsunRezerwacjeCommand}" 
-                            Padding="10" Margin="5,0,0,0" Background="#DC3545" Foreground="White" FontWeight="Bold" Cursor="Hand" />
-                </Grid>
+                <Button Content="Zapisz rezerwację" Command="{Binding DodajRezerwacjeCommand}" Margin="0,15,0,0" Padding="8" Background="#FF9800" Foreground="White" FontWeight="Bold"/>
+                <Button Content="Usuń wybraną" Command="{Binding UsunRezerwacjeCommand}" Margin="0,10,0,0" Padding="8" Background="#DC3545" Foreground="White" FontWeight="Bold"/>
+                <Separator Margin="0,20,0,20"/>
+                <Button Content="Rozpocznij Wizytę" Command="{Binding RozpocznijWizyteCommand}" Padding="10" Background="#17A2B8" Foreground="White" FontWeight="Bold"/>
             </StackPanel>
         </ScrollViewer>
 
-        <DataGrid Grid.Column="1" 
-                  ItemsSource="{Binding HarmonogramLista}" 
-                  SelectedItem="{Binding WybranaRezerwacja, Mode=TwoWay}" 
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True" 
-                  SelectionMode="Single"
-                  RowBackground="#FFF8E1"
-                  AlternatingRowBackground="White">
+        <DataGrid Grid.Column="1" ItemsSource="{Binding HarmonogramLista}" SelectedItem="{Binding WybranaRezerwacja, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" RowBackground="#FFF8E1">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nr Rezerwacji" Binding="{Binding Id}" Width="100"/>
-                <DataGridTextColumn Header="Data i Godzina" Binding="{Binding PlanowanaDataRozpoczecia, StringFormat=dd.MM.yyyy HH:mm}" Width="140" />
-                <DataGridTextColumn Header="Pacjent (Zwierzę)" Binding="{Binding Zwierze.Imie}" Width="150" />
+                <DataGridTextColumn Header="Nr" Binding="{Binding Id}" Width="40"/>
+                <DataGridTextColumn Header="Data" Binding="{Binding PlanowanaDataRozpoczecia, StringFormat=dd.MM.yyyy HH:mm}" Width="120" />
+                <DataGridTextColumn Header="Pacjent" Binding="{Binding Zwierze.Imie}" Width="*" />
                 <DataGridTextColumn Header="Czas (min)" Binding="{Binding SzacowanyCzasTrwania}" Width="80"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding StatusWizyty}" Width="*" />
+                <DataGridTextColumn Header="Status" Binding="{Binding StatusWizyty}" Width="100" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
