@@ -23,6 +23,7 @@
                         <ComboBoxItem Content="Firma" />
                         <ComboBoxItem Content="Osoba prywatna + Firma" />
                     </ComboBox>
+
                     <StackPanel>
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -39,6 +40,7 @@
                         <TextBlock Text="Nazwisko:" Margin="0,0,0,2"/>
                         <TextBox Text="{Binding NoweNazwisko, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
                     </StackPanel>
+
                     <StackPanel>
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -53,6 +55,7 @@
                         <TextBlock Text="Nazwa firmy:" Margin="0,0,0,2"/>
                         <TextBox Text="{Binding NowaNazwaFirmy, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
                     </StackPanel>
+
                     <TextBlock Text="Telefon:" Margin="0,0,0,2"/>
                     <TextBox Text="{Binding NowyTelefon, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
                     <TextBlock Text="Email (*):" FontWeight="Bold" Margin="0,0,0,2"/>
@@ -61,17 +64,29 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <DataGrid Grid.Column="1" ItemsSource="{Binding WlascicieleLista}" SelectedItem="{Binding WybranyWlasciciel, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" RowBackground="#F5F5F5" AlternatingRowBackground="White">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30"/>
-                    <DataGridTextColumn Header="Imię" Binding="{Binding Imie}" />
-                    <DataGridTextColumn Header="Nazwisko" Binding="{Binding Nazwisko}" />
-                    <DataGridTextColumn Header="Nazwa Firmy" Binding="{Binding NazwaFirmy}" />
-                    <DataGridTextColumn Header="Telefon" Binding="{Binding Telefon}" />
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*" />
-                    <DataGridTextColumn Header="Rejestracja" Binding="{Binding DataRejestracji, StringFormat=dd.MM.yyyy}" />
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="🔍 Wyszukaj:" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="14" Margin="0,0,10,0" Foreground="#2C3E50"/>
+                    <TextBox Text="{Binding FrazaWyszukiwania, UpdateSourceTrigger=PropertyChanged}" Width="250" Padding="5" VerticalAlignment="Center" ToolTip="Szukaj po imieniu, nazwisku, firmie lub telefonie..."/>
+                </StackPanel>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding WlascicieleWidok}" SelectedItem="{Binding WybranyWlasciciel, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" RowBackground="#F5F5F5" AlternatingRowBackground="White">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30"/>
+                        <DataGridTextColumn Header="Imię" Binding="{Binding Imie}" />
+                        <DataGridTextColumn Header="Nazwisko" Binding="{Binding Nazwisko}" />
+                        <DataGridTextColumn Header="Nazwa Firmy" Binding="{Binding NazwaFirmy}" />
+                        <DataGridTextColumn Header="Telefon" Binding="{Binding Telefon}" />
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*" />
+                        <DataGridTextColumn Header="Rejestracja" Binding="{Binding DataRejestracji, StringFormat=dd.MM.yyyy}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Grid>
 
         <Separator Grid.Row="1" Margin="0,5,0,15"/>
@@ -115,7 +130,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="5,0,0,0">
                             <TextBlock Text="Waga (kg):" Margin="0,0,0,2"/>
-                            <TextBox Text="{Binding NoweZwierzeWaga, UpdateSourceTrigger=PropertyChanged}" Padding="3" />
+                            <TextBox Text="{Binding NoweZwierzeWaga, UpdateSourceTrigger=LostFocus}" Padding="3" />
                         </StackPanel>
                     </Grid>
                     <Button Content="Dodaj Zwierzę" Command="{Binding DodajZwierzeCommand}" Margin="0,15,0,0" Padding="8" Background="#28A745" Foreground="White" FontWeight="Bold" Cursor="Hand" />

@@ -1,9 +1,11 @@
 ﻿<UserControl x:Class="ZarzadzaniePrzychodniaWeterynaryjna.Views.StatystykiView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="280"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -14,7 +16,23 @@
             </StackPanel>
         </Border>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding ListaFaktur}" AutoGenerateColumns="False" IsReadOnly="True" RowBackground="#F9F9F9" AlternatingRowBackground="White">
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Border Background="White" CornerRadius="8">
+                <Border.Effect>
+                    <DropShadowEffect Color="Gray" Opacity="0.15" BlurRadius="10" ShadowDepth="2"/>
+                </Border.Effect>
+            </Border>
+
+            <Border Background="Transparent" CornerRadius="8" Padding="10">
+                <Grid>
+                    <TextBlock Text="Dzienne przychody z ostatnich dni roboczych" FontWeight="Bold" FontSize="16" Foreground="#2C3E50" Margin="10,0,0,0" />
+
+                    <lvc:CartesianChart Series="{Binding WykresSeria}" XAxes="{Binding OsX}" YAxes="{Binding OsY}" Margin="0,25,0,0" TooltipPosition="Top" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding ListaFaktur}" AutoGenerateColumns="False" IsReadOnly="True" RowBackground="#F9F9F9" AlternatingRowBackground="White" BorderBrush="#DDDDDD">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nr Wizyty" Binding="{Binding WizytaId}" Width="80"/>
                 <DataGridTextColumn Header="Data Zakończenia" Binding="{Binding Data, StringFormat=dd.MM.yyyy HH:mm}" Width="150"/>
@@ -24,7 +42,7 @@
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="Foreground" Value="#2C3E50"/>
+                            <Setter Property="Foreground" Value="#28A745"/>
                             <Setter Property="HorizontalAlignment" Value="Right"/>
                             <Setter Property="Margin" Value="0,0,10,0"/>
                         </Style>

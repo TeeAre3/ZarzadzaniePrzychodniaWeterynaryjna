@@ -1,16 +1,27 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class KlienciPacjenciViewModel : ObservableObject
     {
+        private readonly KlienciService _klienciService = new();
+
         [ObservableProperty] private ObservableCollection<Wlasciciel> _wlascicieleLista = new();
+        [ObservableProperty] private ICollectionView _wlascicieleWidok = null!;
+
+        [ObservableProperty] private string _frazaWyszukiwania = string.Empty;
+        partial void OnFrazaWyszukiwaniaChanged(string value) => WlascicieleWidok?.Refresh();
+
         [ObservableProperty] private int _wybranyTypKlienta = 0;
         [ObservableProperty] private string _noweImie = string.Empty;
         [ObservableProperty] private string _noweNazwisko = string.Empty;
@@ -21,7 +32,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private ObservableCollection<Zwierze> _zwierzetaLista = new();
         [ObservableProperty] private Wlasciciel? _wybranyWlasciciel;
 
-        partial void OnWybranyWlascicielChanged(Wlasciciel? value) => ZaladujZwierzeta();
+        partial void OnWybranyWlascicielChanged(Wlasciciel? value) => _ = ZaladujZwierzetaAsync();
 
         [ObservableProperty] private string _noweZwierzeImie = string.Empty;
         [ObservableProperty] private string _noweZwierzeGatunek = string.Empty;
@@ -31,44 +42,43 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
         public KlienciPacjenciViewModel()
         {
-            ZaladujWlascicieli();
+            _ = ZaladujWlascicieliAsync();
         }
 
-        private void ZaladujWlascicieli()
+        private async Task ZaladujWlascicieliAsync()
         {
-            using var db = new ApplicationDbContext();
-            WlascicieleLista = new ObservableCollection<Wlasciciel>(db.Wlasciciele.ToList());
+            var lista = await _klienciService.PobierzWlascicieliAsync();
+            WlascicieleLista = new ObservableCollection<Wlasciciel>(lista);
+
+            WlascicieleWidok = CollectionViewSource.GetDefaultView(WlascicieleLista);
+            WlascicieleWidok.Filter = FiltrujKlientow;
         }
 
-        private void ZaladujZwierzeta()
+        private async Task ZaladujZwierzetaAsync()
         {
-            if (WybranyWlasciciel == null)
-            {
-                ZwierzetaLista.Clear();
-                return;
-            }
-            using var db = new ApplicationDbContext();
-            ZwierzetaLista = new ObservableCollection<Zwierze>(db.Zwierzeta.Where(z => z.WlascicielId == WybranyWlasciciel.Id).ToList());
+            if (WybranyWlasciciel == null) { ZwierzetaLista.Clear(); return; }
+            var lista = await _klienciService.PobierzZwierzetaAsync(WybranyWlasciciel.Id);
+            ZwierzetaLista = new ObservableCollection<Zwierze>(lista);
+        }
+
+        private bool FiltrujKlientow(object obj)
+        {
+            if (obj is not Wlasciciel w) return false;
+            if (string.IsNullOrWhiteSpace(FrazaWyszukiwania)) return true;
+
+            var search = FrazaWyszukiwania.ToLower();
+            return (w.Imie?.ToLower().Contains(search) == true) ||
+                   (w.Nazwisko?.ToLower().Contains(search) == true) ||
+                   (w.NazwaFirmy?.ToLower().Contains(search) == true) ||
+                   (w.Telefon?.Contains(search) == true);
         }
 
         [RelayCommand]
         private void DodajWlasciciela()
         {
-            if (string.IsNullOrWhiteSpace(NowyEmail))
-            {
-                MessageBox.Show("Email jest wymagany!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if ((WybranyTypKlienta == 0 || WybranyTypKlienta == 2) && (string.IsNullOrWhiteSpace(NoweImie) || string.IsNullOrWhiteSpace(NoweNazwisko)))
-            {
-                MessageBox.Show("Uzupełnij Imię i Nazwisko!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if ((WybranyTypKlienta == 1 || WybranyTypKlienta == 2) && string.IsNullOrWhiteSpace(NowaNazwaFirmy))
-            {
-                MessageBox.Show("Uzupełnij Nazwę Firmy!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(NowyEmail)) { MessageBox.Show("Email jest wymagany!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            if ((WybranyTypKlienta == 0 || WybranyTypKlienta == 2) && (string.IsNullOrWhiteSpace(NoweImie) || string.IsNullOrWhiteSpace(NoweNazwisko))) { MessageBox.Show("Uzupełnij Imię i Nazwisko!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            if ((WybranyTypKlienta == 1 || WybranyTypKlienta == 2) && string.IsNullOrWhiteSpace(NowaNazwaFirmy)) { MessageBox.Show("Uzupełnij Nazwę Firmy!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
 
             var nowyWlasciciel = new Wlasciciel
             {
@@ -80,17 +90,15 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 DataRejestracji = System.DateTime.Now
             };
 
-            using (var db = new ApplicationDbContext())
+            try
             {
-                try 
-                { 
-                    db.Wlasciciele.Add(nowyWlasciciel); db.SaveChanges(); MessageBox.Show("Dodano klienta!", "Sukces");
-                    WeakReferenceMessenger.Default.Send(new WlascicielZmienionyMessage());
-                }
-                catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+                _klienciService.DodajWlasciciela(nowyWlasciciel);
+                MessageBox.Show("Dodano klienta!", "Sukces");
+                WeakReferenceMessenger.Default.Send(new WlascicielZmienionyMessage());
             }
+            catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
 
-            ZaladujWlascicieli();
+            _ = ZaladujWlascicieliAsync();
             NoweImie = NoweNazwisko = NowaNazwaFirmy = NowyTelefon = NowyEmail = string.Empty;
         }
 
@@ -111,17 +119,15 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 Waga = NoweZwierzeWaga
             };
 
-            using (var db = new ApplicationDbContext())
+            try
             {
-                try 
-                { 
-                    db.Zwierzeta.Add(noweZwierze); db.SaveChanges(); MessageBox.Show("Dodano pacjenta!", "Sukces");
-                    WeakReferenceMessenger.Default.Send(new ZwierzeZmienioneMessage());
-                }
-                catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+                _klienciService.DodajZwierze(noweZwierze);
+                MessageBox.Show("Dodano pacjenta!", "Sukces");
+                WeakReferenceMessenger.Default.Send(new ZwierzeZmienioneMessage());
             }
+            catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
 
-            ZaladujZwierzeta();
+            _ = ZaladujZwierzetaAsync();
             NoweZwierzeImie = NoweZwierzeGatunek = NoweZwierzeRasa = string.Empty; NoweZwierzeWaga = null;
         }
     }

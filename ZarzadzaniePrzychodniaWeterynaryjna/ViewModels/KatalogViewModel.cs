@@ -5,11 +5,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using CommunityToolkit.Mvvm.Messaging;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class KatalogViewModel : ObservableObject
     {
+        private readonly KatalogService _katalogService = new();
+
         [ObservableProperty] private ObservableCollection<Katalog> _katalogLista = new();
         [ObservableProperty] private string _nowyKatalogNazwa = string.Empty;
         [ObservableProperty] private int _nowyKatalogTypIndex = 0;
@@ -25,8 +28,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
         private void ZaladujKatalog()
         {
-            using var db = new ApplicationDbContext();
-            KatalogLista = new ObservableCollection<Katalog>(db.Katalogi.ToList());
+            KatalogLista = new ObservableCollection<Katalog>(_katalogService.PobierzKatalog());
         }
 
         [RelayCommand]
@@ -45,17 +47,13 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 CzasTrwaniaWMin = NowyKatalogCzasMin
             };
 
-            using (var db = new ApplicationDbContext())
+            try
             {
-                try 
-                { 
-                    db.Katalogi.Add(nowaPozycja);
-                    db.SaveChanges(); 
-                    WeakReferenceMessenger.Default.Send(new KatalogZmienionyMessage()); 
-                    MessageBox.Show("Dodano pozycję!", "Sukces"); 
-                }
-                catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+                _katalogService.DodajPozycje(nowaPozycja);
+                WeakReferenceMessenger.Default.Send(new KatalogZmienionyMessage());
+                MessageBox.Show("Dodano pozycję!", "Sukces");
             }
+            catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
 
             ZaladujKatalog();
             NowyKatalogNazwa = NowyKatalogJednostka = string.Empty; NowyKatalogCena = null; NowyKatalogCzasMin = 15;

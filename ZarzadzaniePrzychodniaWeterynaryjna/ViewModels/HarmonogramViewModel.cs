@@ -5,20 +5,24 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.EntityFrameworkCore;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class HarmonogramViewModel : ObservableObject
     {
+        private readonly HarmonogramService _harmonogramService = new();
+        private readonly KlienciService _klienciService = new();
+        private readonly KatalogService _katalogService = new();
+
         [ObservableProperty] private ObservableCollection<Harmonogram> _harmonogramLista = new();
         [ObservableProperty] private ObservableCollection<Wlasciciel> _wlascicieleLista = new();
         [ObservableProperty] private ObservableCollection<Zwierze> _zwierzetaLista = new();
         [ObservableProperty] private ObservableCollection<Katalog> _uslugiLista = new();
 
         [ObservableProperty] private Wlasciciel? _wybranyWlasciciel;
-        partial void OnWybranyWlascicielChanged(Wlasciciel? value) => ZaladujZwierzeta();
+        partial void OnWybranyWlascicielChanged(Wlasciciel? value) => _ = ZaladujZwierzetaAsync();
 
         [ObservableProperty] private Zwierze? _wybraneZwierze;
         [ObservableProperty] private Katalog? _wybranaUsluga;
@@ -31,32 +35,44 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
         public HarmonogramViewModel()
         {
-            ZaladujWlascicieli();
+            _ = ZaladujWlascicieliAsync();
             ZaladujUslugi();
             ZaladujHarmonogram();
 
             WeakReferenceMessenger.Default.Register<KatalogZmienionyMessage>(this, (r, m) => ZaladujUslugi());
             WeakReferenceMessenger.Default.Register<WizytaZakonczonaMessage>(this, (r, m) => ZaladujHarmonogram());
 
-            WeakReferenceMessenger.Default.Register<WlascicielZmienionyMessage>(this, (r, m) => ZaladujWlascicieli());
+            WeakReferenceMessenger.Default.Register<WlascicielZmienionyMessage>(this, (r, m) => _ = ZaladujWlascicieliAsync());
             WeakReferenceMessenger.Default.Register<ZwierzeZmienioneMessage>(this, (r, m) =>
             {
-                if (WybranyWlasciciel != null) ZaladujZwierzeta();
+                if (WybranyWlasciciel != null) _ = ZaladujZwierzetaAsync();
             });
         }
 
-        private void ZaladujWlascicieli() { using var db = new ApplicationDbContext(); WlascicieleLista = new ObservableCollection<Wlasciciel>(db.Wlasciciele.ToList()); }
-        private void ZaladujZwierzeta() { if (WybranyWlasciciel == null) { ZwierzetaLista.Clear(); return; } using var db = new ApplicationDbContext(); ZwierzetaLista = new ObservableCollection<Zwierze>(db.Zwierzeta.Where(z => z.WlascicielId == WybranyWlasciciel.Id).ToList()); }
-        private void ZaladujUslugi() { using var db = new ApplicationDbContext(); UslugiLista = new ObservableCollection<Katalog>(db.Katalogi.Where(k => k.Typ == "Usługa").ToList()); }
+        private async System.Threading.Tasks.Task ZaladujWlascicieliAsync()
+        {
+            var lista = await _klienciService.PobierzWlascicieliAsync();
+            WlascicieleLista = new ObservableCollection<Wlasciciel>(lista);
+        }
+
+        private async System.Threading.Tasks.Task ZaladujZwierzetaAsync()
+        {
+            if (WybranyWlasciciel == null) { ZwierzetaLista.Clear(); return; }
+            var lista = await _klienciService.PobierzZwierzetaAsync(WybranyWlasciciel.Id);
+            ZwierzetaLista = new ObservableCollection<Zwierze>(lista);
+        }
+
+        private void ZaladujUslugi()
+        {
+            var wszystkiePozycje = _katalogService.PobierzKatalog();
+            UslugiLista = new ObservableCollection<Katalog>(wszystkiePozycje.Where(k => k.Typ == "Usługa"));
+        }
+
         private void ZaladujHarmonogram()
         {
-            using var db = new ApplicationDbContext();
-            HarmonogramLista = new ObservableCollection<Harmonogram>(db.Harmonogramy
-                .Include(h => h.Zwierze)
-                .Where(h => h.StatusWizyty == "Planowana")
-                .OrderBy(h => h.PlanowanaDataRozpoczecia) 
-                .ToList());
+            HarmonogramLista = new ObservableCollection<Harmonogram>(_harmonogramService.PobierzPlanowaneWizyty());
         }
+
         private void WyliczSzacowanyCzas()
         {
             if (WybranaUsluga == null) return;
@@ -69,31 +85,34 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         {
             if (WybraneZwierze == null || !TimeSpan.TryParse(PlanowanaGodzina, out _)) { MessageBox.Show("Wybierz pacjenta i poprawną godzinę!"); return; }
 
-            using (var db = new ApplicationDbContext())
+            var nowaRezerwacja = new Harmonogram
             {
-                try
-                {
-                    db.Harmonogramy.Add(new Harmonogram
-                    {
-                        ZwierzeId = WybraneZwierze.Id,
-                        PowodWizyty = WybranaUsluga?.Nazwa,
-                        PlanowanaDataRozpoczecia = PlanowanaData.Date.Add(TimeSpan.Parse(PlanowanaGodzina)),
-                        SzacowanyCzasTrwania = SzacowanyCzasMin,
-                        StatusWizyty = "Planowana"
-                    });
-                    db.SaveChanges();
-                }
-                catch (Exception ex) { MessageBox.Show($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}"); return; }
+                ZwierzeId = WybraneZwierze.Id,
+                PowodWizyty = WybranaUsluga?.Nazwa,
+                PlanowanaDataRozpoczecia = PlanowanaData.Date.Add(TimeSpan.Parse(PlanowanaGodzina)),
+                SzacowanyCzasTrwania = SzacowanyCzasMin,
+                StatusWizyty = "Planowana"
+            };
+
+            try
+            {
+                _harmonogramService.DodajRezerwacje(nowaRezerwacja);
+                ZaladujHarmonogram();
             }
-            ZaladujHarmonogram();
+            catch (Exception ex) { MessageBox.Show($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}"); }
         }
 
         [RelayCommand]
         private void UsunRezerwacje()
         {
             if (WybranaRezerwacja == null) return;
-            using (var db = new ApplicationDbContext()) { db.Harmonogramy.Remove(WybranaRezerwacja); db.SaveChanges(); }
-            ZaladujHarmonogram();
+
+            try
+            {
+                _harmonogramService.UsunRezerwacje(WybranaRezerwacja);
+                ZaladujHarmonogram();
+            }
+            catch (Exception ex) { MessageBox.Show($"Błąd: {ex.Message}"); }
         }
 
         [RelayCommand]
@@ -102,7 +121,5 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             if (WybranaRezerwacja == null) { MessageBox.Show("Wybierz rezerwację!"); return; }
             WeakReferenceMessenger.Default.Send(new PrzejdzDoGabinetuMessage(WybranaRezerwacja));
         }
-
-
     }
 }
