@@ -28,7 +28,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
                 entity.HasIndex(w => w.Telefon).IsUnique();
                 entity.HasIndex(w => w.Email).IsUnique();
 
-                // ZAKTUALIZOWANA SKŁADNIA EF CORE:
                 entity.ToTable(tb => tb.HasCheckConstraint("CHK_Wlasciciel_Dane",
                     "([Imię] IS NOT NULL AND [Nazwisko] IS NOT NULL) OR [Nazwa_firmy] IS NOT NULL"));
             });
@@ -48,7 +47,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
             modelBuilder.Entity<Harmonogram>(entity =>
             {
-                // Zgrupowanie Triggera i Check Constraints w jednym wywołaniu ToTable
                 entity.ToTable(tb =>
                 {
                     tb.HasTrigger("trg_BlokadaKonfliktowCzasowych");
