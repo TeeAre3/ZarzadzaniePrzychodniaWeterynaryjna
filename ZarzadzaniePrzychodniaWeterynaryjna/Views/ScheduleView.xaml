@@ -26,7 +26,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                        <TextBlock Text="Godzina:" Margin="0,0,0,2"/>
+                        <TextBlock Text="Godzina (GG:MM):" Margin="0,0,0,2"/>
                         <TextBox Text="{Binding ScheduledTime, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Padding="3" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="5,0,0,0">

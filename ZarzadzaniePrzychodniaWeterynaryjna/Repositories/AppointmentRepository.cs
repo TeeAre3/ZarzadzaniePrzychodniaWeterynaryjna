@@ -8,10 +8,16 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class AppointmentRepository
     {
+        private readonly ApplicationDbContext _context;
+
+        public AppointmentRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public List<Appointment> GetPlannedAppointments()
         {
-            using var db = new ApplicationDbContext();
-            return db.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Where(a => a.Status == "Planowana")
                 .OrderBy(a => a.ScheduledDate)
@@ -20,16 +26,14 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 
         public void AddAppointment(Appointment appointment)
         {
-            using var db = new ApplicationDbContext();
-            db.Appointments.Add(appointment);
-            db.SaveChanges();
+            _context.Appointments.Add(appointment);
+            _context.SaveChanges();
         }
 
         public void RemoveAppointment(Appointment appointment)
         {
-            using var db = new ApplicationDbContext();
-            db.Appointments.Remove(appointment);
-            db.SaveChanges();
+            _context.Appointments.Remove(appointment);
+            _context.SaveChanges();
         }
     }
 }

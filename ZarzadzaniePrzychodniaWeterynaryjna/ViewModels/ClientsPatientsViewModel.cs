@@ -43,6 +43,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         public ClientsPatientsViewModel(ClientRepository clientRepository)
         {
             _clientRepository = clientRepository;
+            _ = LoadClientsAsync();
         }
 
         private async Task LoadClientsAsync()

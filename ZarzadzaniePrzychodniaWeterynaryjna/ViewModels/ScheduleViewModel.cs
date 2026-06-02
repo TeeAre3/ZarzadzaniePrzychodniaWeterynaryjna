@@ -38,6 +38,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             _appointmentRepository = appointmentRepository;
             _clientRepository = clientRepository;
             _catalogRepository = catalogRepository;
+            _ = LoadClientsAsync();
+            LoadServices();
             LoadSchedule();
 
             WeakReferenceMessenger.Default.Register<CatalogChangedMessage>(this, (r, m) => LoadServices());
@@ -84,8 +86,17 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [RelayCommand]
         private void AddAppointment()
         {
-            if (SelectedPatient == null || !TimeSpan.TryParse(ScheduledTime, out _)) { MessageBox.Show("Wybierz pacjenta i poprawną godzinę!"); return; }
+            if (SelectedPatient == null) 
+            {
+                MessageBox.Show("Wybierz pacjenta!", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information); 
+                return; 
+            }
 
+            if(string.IsNullOrWhiteSpace(ScheduledTime) || !System.Text.RegularExpressions.Regex.IsMatch(ScheduledTime, @"^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"))
+            {
+                MessageBox.Show("Wprowadź poprawną godzinę w formacie GG:MM (np. 21:37)", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             var newAppointment = new Appointment
             {
                 PatientId = SelectedPatient.Id,

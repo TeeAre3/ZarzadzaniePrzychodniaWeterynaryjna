@@ -10,30 +10,44 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class ClientRepository
     {
+        private readonly ApplicationDbContext _context;
+
+        public ClientRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public async Task<List<Client>> GetClientsAsync()
         {
-            using var db = new ApplicationDbContext();
-            return await db.Clients.ToListAsync();
+            return await _context.Clients.ToListAsync();
         }
 
         public async Task<List<Patient>> GetPatientsAsync(int clientId)
         {
-            using var db = new ApplicationDbContext();
-            return await db.Patients.Where(p => p.ClientId == clientId).ToListAsync();
+            return await _context.Patients.Where(p => p.ClientId == clientId).ToListAsync();
         }
 
         public void AddClient(Client client)
         {
-            using var db = new ApplicationDbContext();
-            db.Clients.Add(client);
-            db.SaveChanges();
+            _context.Clients.Add(client);
+            _context.SaveChanges();
         }
 
         public void AddPatient(Patient patient)
         {
-            using var db = new ApplicationDbContext();
-            db.Patients.Add(patient);
-            db.SaveChanges();
+            _context.Patients.Add(patient);
+            _context.SaveChanges();
+        }
+        public void UpdateClient(Client client)
+        {
+            _context.Clients.Update(client);
+            _context.SaveChanges();
+        }
+
+        public void UpdatePatient(Patient patient)
+        {
+            _context.Patients.Update(patient);
+            _context.SaveChanges();
         }
     }
 }

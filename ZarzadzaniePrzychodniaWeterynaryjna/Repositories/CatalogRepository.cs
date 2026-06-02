@@ -7,17 +7,22 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class CatalogRepository
     {
+        private readonly ApplicationDbContext _context;
+
+        public CatalogRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
         public List<CatalogItem> GetCatalog()
         {
-            using var db = new ApplicationDbContext();
-            return db.CatalogItems.OrderBy(c => c.Name).ToList();
+            return _context.CatalogItems.OrderBy(c => c.Name).ToList();
         }
 
         public void AddItem(CatalogItem item)
         {
-            using var db = new ApplicationDbContext();
-            db.CatalogItems.Add(item);
-            db.SaveChanges();
+            _context.CatalogItems.Add(item);
+            _context.SaveChanges();
         }
     }
 }

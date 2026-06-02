@@ -20,7 +20,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna
 
             var services = new ServiceCollection();
 
-            services.AddDbContext<ApplicationDbContext>();
+            services.AddTransient<ApplicationDbContext>();
 
             services.AddTransient<AppointmentRepository>();
             services.AddTransient<CatalogRepository>();
