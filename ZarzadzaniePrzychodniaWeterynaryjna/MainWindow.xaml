@@ -6,10 +6,6 @@
         Title="Zarządzanie Przychodnią Weterynaryjną" 
         Height="750" Width="1100" WindowStartupLocation="CenterScreen">
 
-    <Window.DataContext>
-        <viewmodels:MainViewModel />
-    </Window.DataContext>
-
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -49,29 +45,29 @@
 
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#ECF0F1" Height="65">
-            <Button Content="Terminarz" Command="{Binding PokazTerminarzCommand}" Style="{StaticResource TopMenuButtonStyle}" Margin="15,10,5,10"/>
-            <Button Content="Klienci i Pacjenci" Command="{Binding PokazKlienciCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
-            <Button Content="Katalog Usług" Command="{Binding PokazKatalogCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
-            <Button Content="Podsumowanie (Finanse)" Command="{Binding PokazStatystykiCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Terminarz" Command="{Binding ShowScheduleCommand}" Style="{StaticResource TopMenuButtonStyle}" Margin="15,10,5,10"/>
+            <Button Content="Klienci i Pacjenci" Command="{Binding ShowClientsCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Katalog Usług" Command="{Binding ShowCatalogCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
+            <Button Content="Podsumowanie (Finanse)" Command="{Binding ShowStatisticsCommand}" Style="{StaticResource TopMenuButtonStyle}"/>
         </StackPanel>
 
-        <ContentControl Content="{Binding AktualnyWidok}">
+        <ContentControl Content="{Binding CurrentView}">
             <ContentControl.Resources>
-                <DataTemplate DataType="{x:Type viewmodels:HarmonogramViewModel}">
-                    <views:HarmonogramView />
+                <DataTemplate DataType="{x:Type viewmodels:ScheduleViewModel}">
+                    <views:ScheduleView />
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:GabinetViewModel}">
-                    <views:GabinetView />
+                <DataTemplate DataType="{x:Type viewmodels:ConsultationViewModel}">
+                    <views:ConsultationView />
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:KlienciPacjenciViewModel}">
-                    <views:KlienciPacjenciView />
+                <DataTemplate DataType="{x:Type viewmodels:ClientsPatientsViewModel}">
+                    <views:ClientsPatientsView />
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:KatalogViewModel}">
-                    <views:KatalogView />
+                <DataTemplate DataType="{x:Type viewmodels:CatalogViewModel}">
+                    <views:CatalogView />
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type viewmodels:StatystykiViewModel}">
-                    <views:StatystykiView />
+                <DataTemplate DataType="{x:Type viewmodels:StatisticsViewModel}">
+                    <views:StatisticsView />
                 </DataTemplate>
             </ContentControl.Resources>
         </ContentControl>

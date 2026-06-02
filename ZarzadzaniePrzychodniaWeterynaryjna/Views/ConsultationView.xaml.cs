@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
 {
     /// <summary>
-    /// Logika interakcji dla klasy StatystykiView.xaml
+    /// Logika interakcji dla klasy GabinetView.xaml
     /// </summary>
-    public partial class StatystykiView : UserControl
+    public partial class ConsultationView : UserControl
     {
-        public StatystykiView()
+        public ConsultationView()
         {
             InitializeComponent();
         }

@@ -18,9 +18,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
     /// <summary>
     /// Logika interakcji dla klasy KatalogView.xaml
     /// </summary>
-    public partial class KatalogView : UserControl
+    public partial class CatalogView : UserControl
     {
-        public KatalogView()
+        public CatalogView()
         {
             InitializeComponent();
         }

@@ -7,12 +7,12 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public DbSet<Wlasciciel> Wlasciciele { get; set; } = null!;
-        public DbSet<Zwierze> Zwierzeta { get; set; } = null!;
-        public DbSet<Katalog> Katalogi { get; set; } = null!;
-        public DbSet<Harmonogram> Harmonogramy { get; set; } = null!;
-        public DbSet<WizytaMedyczna> Wizyty { get; set; } = null!;
-        public DbSet<PozycjaWizyty> PozycjeWizyt { get; set; } = null!;
+        public DbSet<Client> Clients { get; set; } = null!;
+        public DbSet<Patient> Patients { get; set; } = null!;
+        public DbSet<CatalogItem> CatalogItems { get; set; } = null!;
+        public DbSet<Appointment> Appointments { get; set; } = null!;
+        public DbSet<MedicalVisit> MedicalVisits { get; set; } = null!;
+        public DbSet<VisitItem> VisitItems { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -32,29 +32,29 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Wlasciciel>(entity =>
+            modelBuilder.Entity<Client>(entity =>
             {
-                entity.HasIndex(w => w.Telefon).IsUnique();
+                entity.HasIndex(w => w.PhoneNumber).IsUnique();
                 entity.HasIndex(w => w.Email).IsUnique();
 
                 entity.ToTable(tb => tb.HasCheckConstraint("CHK_Wlasciciel_Dane",
                     "([Imię] IS NOT NULL AND [Nazwisko] IS NOT NULL) OR [Nazwa_firmy] IS NOT NULL"));
             });
 
-            modelBuilder.Entity<Zwierze>(entity =>
+            modelBuilder.Entity<Patient>(entity =>
             {
-                entity.Property(z => z.Waga).HasColumnType("decimal(5,2)");
+                entity.Property(z => z.Weight).HasColumnType("decimal(5,2)");
                 entity.ToTable(tb => tb.HasCheckConstraint("CHK_Zwierze_Waga", "[waga] > 0"));
             });
 
-            modelBuilder.Entity<Katalog>(entity =>
+            modelBuilder.Entity<CatalogItem>(entity =>
             {
-                entity.Property(k => k.CenaEwidencyjna).HasColumnType("decimal(8,2)");
+                entity.Property(k => k.Price).HasColumnType("decimal(8,2)");
                 entity.Property(k => k.VAT).HasColumnType("decimal(5,2)");
                 entity.ToTable(tb => tb.HasCheckConstraint("CHK_Katalog_Cena", "[Cena_Ewidencyjna] >= 0"));
             });
 
-            modelBuilder.Entity<Harmonogram>(entity =>
+            modelBuilder.Entity<Appointment>(entity =>
             {
                 entity.ToTable(tb =>
                 {
@@ -64,7 +64,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
                 });
             });
 
-            modelBuilder.Entity<PozycjaWizyty>(entity =>
+            modelBuilder.Entity<VisitItem>(entity =>
             {
                 entity.ToTable(tb =>
                 {

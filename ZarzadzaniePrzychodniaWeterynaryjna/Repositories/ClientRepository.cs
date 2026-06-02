@@ -6,33 +6,33 @@ using Microsoft.EntityFrameworkCore;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
-namespace ZarzadzaniePrzychodniaWeterynaryjna.Services
+namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class KlienciService
+    public class ClientRepository
     {
-        public async Task<List<Wlasciciel>> PobierzWlascicieliAsync()
+        public async Task<List<Client>> GetClientsAsync()
         {
             using var db = new ApplicationDbContext();
-            return await db.Wlasciciele.ToListAsync();
+            return await db.Clients.ToListAsync();
         }
 
-        public async Task<List<Zwierze>> PobierzZwierzetaAsync(int wlascicielId)
+        public async Task<List<Patient>> GetPatientsAsync(int clientId)
         {
             using var db = new ApplicationDbContext();
-            return await db.Zwierzeta.Where(z => z.WlascicielId == wlascicielId).ToListAsync();
+            return await db.Patients.Where(p => p.ClientId == clientId).ToListAsync();
         }
 
-        public void DodajWlasciciela(Wlasciciel wlasciciel)
+        public void AddClient(Client client)
         {
             using var db = new ApplicationDbContext();
-            db.Wlasciciele.Add(wlasciciel);
+            db.Clients.Add(client);
             db.SaveChanges();
         }
 
-        public void DodajZwierze(Zwierze zwierze)
+        public void AddPatient(Patient patient)
         {
             using var db = new ApplicationDbContext();
-            db.Zwierzeta.Add(zwierze);
+            db.Patients.Add(patient);
             db.SaveChanges();
         }
     }

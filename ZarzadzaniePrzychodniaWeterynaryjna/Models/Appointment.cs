@@ -5,38 +5,38 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 {
     [Table("Harmonogram")]
-    public class Harmonogram
+    public class Appointment
     {
         [Key]
         [Column("id_rezerwacji")]
         public int Id { get; set; }
 
         [Column("id_zwierzęcia")]
-        public int ZwierzeId { get; set; }
+        public int PatientId { get; set; }
 
-        [ForeignKey("ZwierzeId")]
-        public virtual Zwierze? Zwierze { get; set; }
+        [ForeignKey(nameof(PatientId))]
+        public virtual Patient? Patient { get; set; }
 
         [Required]
         [Column("Planowana_Data_Rozpoczęcia")]
-        public DateTime PlanowanaDataRozpoczecia { get; set; }
+        public DateTime ScheduledDate { get; set; }
 
         [Column("Szacowany_czas_trwania")]
-        public int SzacowanyCzasTrwania { get; set; }
+        public int EstimatedDurationMin { get; set; }
 
         [Column("Powód_Wizyty")]
         [MaxLength(150)]
-        public string? PowodWizyty { get; set; }
+        public string? Reason { get; set; }
 
         [Required]
         [MaxLength(50)]
         [Column("Status_Wizyty")]
-        public string StatusWizyty { get; set; } = "Planowana"; 
+        public string Status { get; set; } = "Planowana"; 
 
         [Column("Rzeczywisty_Czas_Rozpoczęcia")]
-        public DateTime? RzeczywistyCzasRozpoczecia { get; set; }
+        public DateTime? ActualStartTime { get; set; }
 
         [Column("Rzeczywisty_Czas_Zakończenia")]
-        public DateTime? RzeczywistyCzasZakonczenia { get; set; }
+        public DateTime? ActualEndTime { get; set; }
     }
 }

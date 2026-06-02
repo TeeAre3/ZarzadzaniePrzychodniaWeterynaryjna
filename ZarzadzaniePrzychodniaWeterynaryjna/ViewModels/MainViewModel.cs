@@ -8,37 +8,35 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        public KlienciPacjenciViewModel KlienciVM { get; } = new();
-        public KatalogViewModel KatalogVM { get; } = new();
-        public HarmonogramViewModel HarmonogramVM { get; } = new();
-        public GabinetViewModel GabinetVM { get; } = new();
-
-        public StatystykiViewModel StatystykiVM { get; } = new();
+        public ClientsPatientsViewModel ClientsVM { get; } = new();
+        public CatalogViewModel CatalogVM { get; } = new();
+        public ScheduleViewModel ScheduleVM { get; } = new();
+        public ConsultationViewModel ConsultationVM { get; } = new();
+        public StatisticsViewModel StatisticsVM { get; } = new();
 
         [ObservableProperty]
-        private object? _aktualnyWidok;
+        private object? _currentView;
 
         public MainViewModel()
         {
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
-            AktualnyWidok = HarmonogramVM;
+            CurrentView = ScheduleVM;
 
-            WeakReferenceMessenger.Default.Register<PrzejdzDoGabinetuMessage>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<GoToConsultationMessage>(this, (r, m) =>
             {
-                GabinetVM.RozpocznijWizyte(m.Rezerwacja);
-                AktualnyWidok = GabinetVM;
+                ConsultationVM.StartConsultation(m.Appointment);
+                CurrentView = ConsultationVM;
             });
 
-            WeakReferenceMessenger.Default.Register<WizytaZakonczonaMessage>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<ConsultationEndedMessage>(this, (r, m) =>
             {
-                AktualnyWidok = HarmonogramVM;
+                CurrentView = ScheduleVM;
             });
         }
 
-        [RelayCommand] private void PokazTerminarz() => AktualnyWidok = HarmonogramVM;
-        [RelayCommand] private void PokazKlienci() => AktualnyWidok = KlienciVM;
-        [RelayCommand] private void PokazKatalog() => AktualnyWidok = KatalogVM;
-
-        [RelayCommand] private void PokazStatystyki() => AktualnyWidok = StatystykiVM;
+        [RelayCommand] private void ShowSchedule() => CurrentView = ScheduleVM;
+        [RelayCommand] private void ShowClients() => CurrentView = ClientsVM;
+        [RelayCommand] private void ShowCatalog() => CurrentView = CatalogVM;
+        [RelayCommand] private void ShowStatistics() => CurrentView = StatisticsVM;
     }
 }

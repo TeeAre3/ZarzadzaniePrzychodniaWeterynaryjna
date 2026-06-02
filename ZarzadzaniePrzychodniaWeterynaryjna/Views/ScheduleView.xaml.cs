@@ -18,9 +18,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
     /// <summary>
     /// Logika interakcji dla klasy HarmonogramView.xaml
     /// </summary>
-    public partial class HarmonogramView : UserControl
+    public partial class ScheduleView : UserControl
     {
-        public HarmonogramView()
+        public ScheduleView()
         {
             InitializeComponent();
         }

@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 {
     [Table("Właściciel")]
-    public class Wlasciciel
+    public class Client
     {
         [Key] 
         [Column("id_właściciela")]
@@ -14,19 +14,19 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
         [Column("Telefon")]
         [MaxLength(15)] 
-        public string? Telefon { get; set; }
+        public string? PhoneNumber { get; set; }
 
         [Column("Imię")]
         [MaxLength(50)]
-        public string? Imie { get; set; }
+        public string? FirstName { get; set; }
 
         [Column("Nazwisko")]
         [MaxLength(50)]
-        public string? Nazwisko { get; set; }
+        public string? LastName { get; set; }
 
         [Column("Nazwa_firmy")]
         [MaxLength(100)]
-        public string? NazwaFirmy { get; set; }
+        public string? CompanyName { get; set; }
 
         [Required] 
         [Column("Email")]
@@ -34,23 +34,23 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         public string Email { get; set; } = string.Empty;
 
         [Column("Data_rejestracji")]
-        public DateTime DataRejestracji { get; set; } = DateTime.Now;
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
         [NotMapped]
-        public string WyswietlanaNazwa
+        public string DisplayName
         {
             get
             {
-                if (!string.IsNullOrWhiteSpace(NazwaFirmy) && !string.IsNullOrWhiteSpace(Nazwisko))
-                    return $"{NazwaFirmy} ({Imie} {Nazwisko})";
+                if (!string.IsNullOrWhiteSpace(CompanyName) && !string.IsNullOrWhiteSpace(LastName))
+                    return $"{CompanyName} ({FirstName} {LastName})";
 
-                if (!string.IsNullOrWhiteSpace(NazwaFirmy))
-                    return NazwaFirmy;
+                if (!string.IsNullOrWhiteSpace(CompanyName))
+                    return CompanyName;
 
-                return $"{Imie} {Nazwisko}".Trim();
+                return $"{FirstName} {LastName}".Trim();
             }
         }
 
-        public ICollection<Zwierze> Zwierzeta { get; set; } = new List<Zwierze>();
+        public ICollection<Patient> Patients { get; set; } = new List<Patient>();
     }
 }

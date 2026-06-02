@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 {
     [Table("Katalog")]
-    public class Katalog
+    public class CatalogItem
     {
         [Key]
         [Column("id_pozycji")]
@@ -12,23 +12,25 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
 
         [Required]
         [MaxLength(100)]
-        public string Nazwa { get; set; } = string.Empty;
+        [Column("Nazwa")]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
-        public string Typ { get; set; } = string.Empty; 
+        [Column("Typ")]
+        public string ItemType { get; set; } = string.Empty; 
 
         [Column("Cena_Ewidencyjna")]
-        public decimal CenaEwidencyjna { get; set; }
+        public decimal Price { get; set; }
 
         public decimal VAT { get; set; }
 
         [Required]
         [Column("Jednostka_Miary")]
         [MaxLength(20)]
-        public string JednostkaMiary { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
 
         [Column("czas_trwania_w_min")]
-        public int CzasTrwaniaWMin { get; set; }
+        public int DurationMin { get; set; }
     }
 }

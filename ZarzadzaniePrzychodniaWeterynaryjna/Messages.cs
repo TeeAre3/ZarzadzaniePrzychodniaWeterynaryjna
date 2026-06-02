@@ -2,13 +2,13 @@
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna
 {
-    public class PrzejdzDoGabinetuMessage
+    public class GoToConsultationMessage
     {
-        public Harmonogram Rezerwacja { get; }
-        public PrzejdzDoGabinetuMessage(Harmonogram r) => Rezerwacja = r;
+        public Appointment Appointment { get; }
+        public GoToConsultationMessage(Appointment r) => Appointment = r;
     }
-    public class WlascicielZmienionyMessage { }
-    public class ZwierzeZmienioneMessage { }
-    public class KatalogZmienionyMessage { }
-    public class WizytaZakonczonaMessage { }
+    public class ClientChangedMessage { }
+    public class PatientChangedMessage { }
+    public class CatalogChangedMessage { }
+    public class ConsultationEndedMessage { }
 }

@@ -3,20 +3,20 @@ using System.Linq;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
-namespace ZarzadzaniePrzychodniaWeterynaryjna.Services
+namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class KatalogService
+    public class CatalogRepository
     {
-        public List<Katalog> PobierzKatalog()
+        public List<CatalogItem> GetCatalog()
         {
             using var db = new ApplicationDbContext();
-            return db.Katalogi.OrderBy(k => k.Nazwa).ToList();
+            return db.CatalogItems.OrderBy(c => c.Name).ToList();
         }
 
-        public void DodajPozycje(Katalog pozycja)
+        public void AddItem(CatalogItem item)
         {
             using var db = new ApplicationDbContext();
-            db.Katalogi.Add(pozycja);
+            db.CatalogItems.Add(item);
             db.SaveChanges();
         }
     }
