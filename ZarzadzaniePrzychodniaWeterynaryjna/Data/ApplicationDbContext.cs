@@ -24,10 +24,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
                     .Build();
 
                 string? connectionString = configuration.GetConnectionString("DefaultConnection")!;
-                if(string.IsNullOrEmpty(connectionString))
-                {
-                    connectionString = "Server=FalszywySerwer;Database=TylkoDlaPodgladu;User Id=Brak;Password=Brak;";
-                }
                 optionsBuilder.UseSqlServer(connectionString);
             }
         }

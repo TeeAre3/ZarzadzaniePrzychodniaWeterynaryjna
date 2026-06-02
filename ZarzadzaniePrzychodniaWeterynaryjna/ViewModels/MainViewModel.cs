@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System.ComponentModel;
+using System.Windows;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
@@ -14,10 +16,11 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         public StatystykiViewModel StatystykiVM { get; } = new();
 
         [ObservableProperty]
-        private object _aktualnyWidok;
+        private object? _aktualnyWidok;
 
         public MainViewModel()
         {
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
             AktualnyWidok = HarmonogramVM;
 
             WeakReferenceMessenger.Default.Register<PrzejdzDoGabinetuMessage>(this, (r, m) =>
