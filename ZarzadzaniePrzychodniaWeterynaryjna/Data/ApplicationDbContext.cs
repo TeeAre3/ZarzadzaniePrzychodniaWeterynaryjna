@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
-namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
+namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -15,7 +18,17 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=localhost;Database=ZarzadzaniePrzychodniaWeterynaryjna;Trusted_Connection=True;TrustServerCertificate=True;");
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .Build();
+
+                string? connectionString = configuration.GetConnectionString("DefaultConnection")!;
+                if(string.IsNullOrEmpty(connectionString))
+                {
+                    connectionString = "Server=FalszywySerwer;Database=TylkoDlaPodgladu;User Id=Brak;Password=Brak;";
+                }
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
 
