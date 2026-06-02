@@ -14,7 +14,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class ClientsPatientsViewModel : ObservableObject
     {
-        private readonly ClientRepository _clientRepository = new();
+        private readonly ClientRepository _clientRepository;
 
         [ObservableProperty] private ObservableCollection<Client> _clientsList = new();
         [ObservableProperty] private ICollectionView _clientsView = null!;
@@ -40,9 +40,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private int _newPatientGenderIndex = 0;
         [ObservableProperty] private decimal? _newPatientWeight;
 
-        public ClientsPatientsViewModel()
+        public ClientsPatientsViewModel(ClientRepository clientRepository)
         {
-            _ = LoadClientsAsync();
+            _clientRepository = clientRepository;
         }
 
         private async Task LoadClientsAsync()

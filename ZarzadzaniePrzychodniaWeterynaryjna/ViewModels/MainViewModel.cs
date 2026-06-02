@@ -8,17 +8,28 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        public ClientsPatientsViewModel ClientsVM { get; } = new();
-        public CatalogViewModel CatalogVM { get; } = new();
-        public ScheduleViewModel ScheduleVM { get; } = new();
-        public ConsultationViewModel ConsultationVM { get; } = new();
-        public StatisticsViewModel StatisticsVM { get; } = new();
+        public ClientsPatientsViewModel ClientsVM { get; }
+        public CatalogViewModel CatalogVM { get; }
+        public ScheduleViewModel ScheduleVM { get; }
+        public ConsultationViewModel ConsultationVM { get; }
+        public StatisticsViewModel StatisticsVM { get; }
 
         [ObservableProperty]
         private object? _currentView;
 
-        public MainViewModel()
+        public MainViewModel(
+            ClientsPatientsViewModel clientsVM,
+            CatalogViewModel catalogVM,
+            ScheduleViewModel scheduleVM,
+            ConsultationViewModel consultationVM,
+            StatisticsViewModel statisticsVM)
         {
+            ClientsVM = clientsVM;
+            CatalogVM = catalogVM;
+            ScheduleVM = scheduleVM;
+            ConsultationVM = consultationVM;
+            StatisticsVM = statisticsVM;
+
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
             CurrentView = ScheduleVM;
 

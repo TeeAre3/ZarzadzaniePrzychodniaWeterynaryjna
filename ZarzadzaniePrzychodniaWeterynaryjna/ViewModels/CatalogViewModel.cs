@@ -11,7 +11,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class CatalogViewModel : ObservableObject
     {
-        private readonly CatalogRepository _catalogRepository = new();
+        private readonly CatalogRepository _catalogRepository;
 
         [ObservableProperty] private ObservableCollection<CatalogItem> _catalogList = new();
         [ObservableProperty] private string _newItemName = string.Empty;
@@ -21,8 +21,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private string _newItemUnit = string.Empty;
         [ObservableProperty] private int _newItemDurationMin = 15;
 
-        public CatalogViewModel()
+        public CatalogViewModel(CatalogRepository catalogRepository)
         {
+            _catalogRepository = catalogRepository;
             LoadCatalog();
         }
 

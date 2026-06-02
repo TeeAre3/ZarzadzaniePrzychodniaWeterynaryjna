@@ -15,7 +15,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class StatisticsViewModel : ObservableObject
     {
-        private readonly StatisticsRepository _statisticsRepository = new();
+        private readonly StatisticsRepository _statisticsRepository;
 
         [ObservableProperty] private ObservableCollection<InvoiceDto> _invoiceList = new();
         [ObservableProperty] private decimal _totalRevenue = 0;
@@ -24,8 +24,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private Axis[] _xAxis = Array.Empty<Axis>();
         [ObservableProperty] private Axis[] _yAxis = Array.Empty<Axis>();
 
-        public StatisticsViewModel()
+        public StatisticsViewModel(StatisticsRepository statisticsRepository)
         {
+            _statisticsRepository = statisticsRepository;
             LoadStatistics();
             WeakReferenceMessenger.Default.Register<ConsultationEndedMessage>(this, (r, m) => LoadStatistics());
         }

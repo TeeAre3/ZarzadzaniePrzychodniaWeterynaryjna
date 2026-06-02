@@ -12,9 +12,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class ScheduleViewModel : ObservableObject
     {
-        private readonly AppointmentRepository _appointmentRepository = new();
-        private readonly ClientRepository _clientRepository = new();
-        private readonly CatalogRepository _catalogRepository = new();
+        private readonly AppointmentRepository _appointmentRepository;
+        private readonly ClientRepository _clientRepository;
+        private readonly CatalogRepository _catalogRepository;
 
         [ObservableProperty] private ObservableCollection<Appointment> _appointmentList = new();
         [ObservableProperty] private ObservableCollection<Client> _clientsList = new();
@@ -33,10 +33,11 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private int _estimatedDurationMin = 15;
         [ObservableProperty] private Appointment? _selectedAppointment;
 
-        public ScheduleViewModel()
+        public ScheduleViewModel(AppointmentRepository appointmentRepository, ClientRepository clientRepository, CatalogRepository catalogRepository)
         {
-            _ = LoadClientsAsync();
-            LoadServices();
+            _appointmentRepository = appointmentRepository;
+            _clientRepository = clientRepository;
+            _catalogRepository = catalogRepository;
             LoadSchedule();
 
             WeakReferenceMessenger.Default.Register<CatalogChangedMessage>(this, (r, m) => LoadServices());

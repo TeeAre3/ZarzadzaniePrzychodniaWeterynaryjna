@@ -12,8 +12,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
     public partial class ConsultationViewModel : ObservableObject
     {
-        private readonly ConsultationRepository _consultationRepository = new();
-        private readonly CatalogRepository _catalogRepository = new();
+        private readonly ConsultationRepository _consultationRepository;
+        private readonly CatalogRepository _catalogRepository;
 
         [ObservableProperty] private Appointment? _activeAppointment;
         [ObservableProperty] private ObservableCollection<MedicalVisit> _visitHistory = new();
@@ -28,8 +28,10 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private decimal _newQuantity = 1;
         [ObservableProperty] private decimal _totalSum = 0;
 
-        public ConsultationViewModel()
+        public ConsultationViewModel(ConsultationRepository consultationRepository, CatalogRepository catalogRepository)
         {
+            _consultationRepository = consultationRepository;
+            _catalogRepository = catalogRepository;
             WeakReferenceMessenger.Default.Register<CatalogChangedMessage>(this, (r, m) => LoadCatalog());
         }
 
