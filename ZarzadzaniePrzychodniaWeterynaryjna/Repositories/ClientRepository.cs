@@ -49,5 +49,27 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
             _context.Patients.Update(patient);
             _context.SaveChanges();
         }
+        public void RemoveClient(Client client)
+        {
+            _context.Clients.Remove(client);
+            _context.SaveChanges();
+        }
+
+        public void RemovePatient(Patient patient)
+        {
+            _context.Patients.Remove(patient);
+            _context.SaveChanges();
+        }
+
+        public void SaveAllChanges()
+        {
+            _context.SaveChanges();
+        }
+
+        public bool HasChanges()
+        {
+            _context.ChangeTracker.DetectChanges();
+            return _context.ChangeTracker.HasChanges();
+        }
     }
 }

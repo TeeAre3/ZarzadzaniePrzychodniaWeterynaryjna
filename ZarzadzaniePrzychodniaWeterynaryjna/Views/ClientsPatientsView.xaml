@@ -2,10 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:ZarzadzaniePrzychodniaWeterynaryjna.Converters">
+
     <UserControl.Resources>
-        <conv:DecimalConverter x:Key="DecimalConv"/>
+        <conv:DecimalConverter x:Key="KropkaNaPrzecinekConv" />
     </UserControl.Resources>
-    
+
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -81,20 +82,36 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                    <TextBlock Text="Wyszukaj:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Width="250" Padding="3"/>
-                </StackPanel>
 
-                <DataGrid Grid.Row="1" ItemsSource="{Binding ClientsView}" SelectedItem="{Binding SelectedClient, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Wyszukaj:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" MaxWidth="250" HorizontalAlignment="Left" Width="200" Padding="3"/>
+
+                    <Button Grid.Column="2" Content="Zapisz Zmiany (Wszystkie)" Command="{Binding EditClientCommand}" Padding="10,5" Background="#17A2B8" Foreground="White" FontWeight="Bold"/>
+                </Grid>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding ClientsView}" SelectedItem="{Binding SelectedClient, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="False" SelectionMode="Single" CanUserAddRows="False" CellEditEnding="DataGrid_CellEditEnding" PreparingCellForEdit="DataGrid_PreparingCellForEdit" Sorting="DataGrid_Sorting">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30"/>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Imię" Binding="{Binding FirstName}" Width="*"/>
                         <DataGridTextColumn Header="Nazwisko" Binding="{Binding LastName}" Width="*"/>
                         <DataGridTextColumn Header="Firma" Binding="{Binding CompanyName}" Width="*"/>
                         <DataGridTextColumn Header="Telefon" Binding="{Binding PhoneNumber}" Width="100"/>
                         <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150"/>
-                        <DataGridTextColumn Header="Zarejestrowany" Binding="{Binding RegistrationDate, StringFormat=dd.MM.yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Zarejestrowany" Binding="{Binding RegistrationDate, StringFormat=dd.MM.yyyy}" Width="100" IsReadOnly="True"/>
+
+                        <DataGridTemplateColumn Width="70" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Usuń" Command="{Binding DataContext.RemoveClientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="#DC3545" Foreground="White" Padding="5,0" Cursor="Hand"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
@@ -124,10 +141,10 @@
                     <TextBlock Text="Nowe Zwierzę" FontSize="20" FontWeight="Bold" Margin="0,0,0,15" />
                     <TextBlock Text="{Binding SelectedClient.DisplayName, StringFormat='Właściciel: {0}'}" FontStyle="Italic" Foreground="Gray" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-                    <TextBlock Text="Imię:" Margin="0,0,0,2"/>
+                    <TextBlock Text="Imię (*):" Margin="0,0,0,2"/>
                     <TextBox Text="{Binding NewPatientName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
 
-                    <TextBlock Text="Gatunek (np. Pies, Kot):" Margin="0,0,0,2"/>
+                    <TextBlock Text="Gatunek (*):" Margin="0,0,0,2"/>
                     <TextBox Text="{Binding NewPatientSpecies, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" Padding="3" />
 
                     <TextBlock Text="Rasa (opcjonalnie):" Margin="0,0,0,2"/>
@@ -147,23 +164,40 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="5,0,0,0">
                             <TextBlock Text="Waga (kg):" Margin="0,0,0,2"/>
-                            <TextBox Text="{Binding NewPatientWeight, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Padding="3" PreviewTextInput="Weight_PreviewTextInput" />
+                            <TextBox Text="{Binding NewPatientWeight, Converter={StaticResource KropkaNaPrzecinekConv}, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Padding="3" PreviewTextInput="Weight_PreviewTextInput" />
                         </StackPanel>
                     </Grid>
                     <Button Content="Dodaj Zwierzę" Command="{Binding AddPatientCommand}" Margin="0,15,0,0" Padding="8" Background="#28A745" Foreground="White" FontWeight="Bold" Cursor="Hand" />
                 </StackPanel>
             </ScrollViewer>
 
-            <DataGrid Grid.Column="1" ItemsSource="{Binding PatientsList}" AutoGenerateColumns="False" IsReadOnly="True" >
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30"/>
-                    <DataGridTextColumn Header="Imię" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Gatunek" Binding="{Binding Species}" />
-                    <DataGridTextColumn Header="Rasa" Binding="{Binding Breed}" />
-                    <DataGridTextColumn Header="Płeć" Binding="{Binding Gender}" />
-                    <DataGridTextColumn Header="Waga" Binding="{Binding Weight, StringFormat={}{0} kg}" />
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0" Content="Zapisz Zmiany (Wszystkie)" Command="{Binding EditPatientCommand}" Padding="10,5" Background="#17A2B8" Foreground="White" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Right"/>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding PatientsList}" SelectedItem="{Binding SelectedPatient, Mode=TwoWay}" AutoGenerateColumns="False" IsReadOnly="False" CanUserAddRows="False" CellEditEnding="DataGrid_CellEditEnding" PreparingCellForEdit="DataGrid_PreparingCellForEdit" Sorting="DataGrid_Sorting">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="30" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Imię" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Gatunek" Binding="{Binding Species}" />
+                        <DataGridTextColumn Header="Rasa" Binding="{Binding Breed}" />
+                        <DataGridTextColumn Header="Płeć" Binding="{Binding Gender}" />
+                        <DataGridTextColumn Header="Waga" Binding="{Binding Weight, StringFormat={}{0} kg}" />
+
+                        <DataGridTemplateColumn Width="70" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Usuń" Command="{Binding DataContext.RemovePatientCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="#DC3545" Foreground="White" Padding="5,0" Cursor="Hand"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
