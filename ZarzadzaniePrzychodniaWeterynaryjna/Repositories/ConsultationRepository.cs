@@ -7,11 +7,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class ConsultationRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context = context;
-
         public List<MedicalVisit> GetPatientHistory(int patientId)
         {
-            return _context.MedicalVisits
+            return context.MedicalVisits
                 .Where(v => v.Appointment != null && v.Appointment.PatientId == patientId)
                 .OrderByDescending(v => v.VisitDate)
                 .ToList();
@@ -19,8 +17,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 
         public void SaveConsultation(MedicalVisit visit, IEnumerable<VisitItem> items)
         {
-            _context.MedicalVisits.Add(visit);
-            _context.SaveChanges();
+            context.MedicalVisits.Add(visit);
+            context.SaveChanges();
 
             foreach (var item in items)
             {
@@ -32,16 +30,16 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
                     AppliedPrice = item.AppliedPrice,
                     AppliedVAT = item.AppliedVAT
                 };
-                _context.VisitItems.Add(newItem);
+                context.VisitItems.Add(newItem);
             }
 
-            var existingAppointment = _context.Appointments.Find(visit.AppointmentId);
+            var existingAppointment = context.Appointments.Find(visit.AppointmentId);
             if (existingAppointment != null)
             {
                 existingAppointment.Status = "Zrealizowana";
             }
 
-            _context.SaveChanges();
+            context.SaveChanges();
         }
     }
 }

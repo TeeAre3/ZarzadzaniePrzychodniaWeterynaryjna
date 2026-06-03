@@ -8,37 +8,37 @@ using System.Runtime.CompilerServices;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class PatientRepository(ApplicationDbContext _context)
+    public class PatientRepository(ApplicationDbContext context)
     {
         public async Task<List<Patient>> GetPatientsAsync(int clientId)
         {
-            return await _context.Patients.Where(p => p.ClientId == clientId).ToListAsync();
+            return await context.Patients.Where(p => p.ClientId == clientId).ToListAsync();
         }
 
         public void AddPatient(Patient patient)
         {
-            _context.Patients.Add(patient);
-            _context.SaveChanges();
+            context.Patients.Add(patient);
+            context.SaveChanges();
         }
         public void UpdatePatient(Patient patient)
         {
-            _context.Patients.Update(patient);
-            _context.SaveChanges();
+            context.Patients.Update(patient);
+            context.SaveChanges();
         }
         public void RemovePatient(Patient patient)
         {
-            _context.Patients.Remove(patient);
-            _context.SaveChanges();
+            context.Patients.Remove(patient);
+            context.SaveChanges();
         }
          public void SaveAllChanges()
         {
-            _context.SaveChanges();
+            context.SaveChanges();
         }
 
         public bool HasChanges()
         {
-            _context.ChangeTracker.DetectChanges();
-            return _context.ChangeTracker.HasChanges();
+            context.ChangeTracker.DetectChanges();
+            return context.ChangeTracker.HasChanges();
         }
     }
 }

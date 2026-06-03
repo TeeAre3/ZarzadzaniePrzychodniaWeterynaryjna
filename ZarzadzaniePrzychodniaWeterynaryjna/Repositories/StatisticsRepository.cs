@@ -9,11 +9,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class StatisticsRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context = context;
-
         public List<InvoiceDto> GetInvoices()
         {
-            return [.. _context.MedicalVisits
+            return [.. context.MedicalVisits
                 .Include(v => v.Appointment!).ThenInclude(a => a.Patient!).ThenInclude(p => p.Client!)
                 .Include(v => v.VisitItems)
                 .OrderByDescending(v => v.VisitDate)
