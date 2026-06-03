@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
@@ -8,68 +6,40 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class ClientRepository
+    public class ClientRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public ClientRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<List<Client>> GetClientsAsync()
         {
-            return await _context.Clients.ToListAsync();
-        }
-
-        public async Task<List<Patient>> GetPatientsAsync(int clientId)
-        {
-            return await _context.Patients.Where(p => p.ClientId == clientId).ToListAsync();
+            return await context.Clients.ToListAsync();
         }
 
         public void AddClient(Client client)
         {
-            _context.Clients.Add(client);
-            _context.SaveChanges();
+            context.Clients.Add(client);
+            context.SaveChanges();
         }
 
-        public void AddPatient(Patient patient)
-        {
-            _context.Patients.Add(patient);
-            _context.SaveChanges();
-        }
         public void UpdateClient(Client client)
         {
-            _context.Clients.Update(client);
-            _context.SaveChanges();
+            context.Clients.Update(client);
+            context.SaveChanges();
         }
 
-        public void UpdatePatient(Patient patient)
-        {
-            _context.Patients.Update(patient);
-            _context.SaveChanges();
-        }
         public void RemoveClient(Client client)
         {
-            _context.Clients.Remove(client);
-            _context.SaveChanges();
-        }
-
-        public void RemovePatient(Patient patient)
-        {
-            _context.Patients.Remove(patient);
-            _context.SaveChanges();
+            context.Clients.Remove(client);
+            context.SaveChanges();
         }
 
         public void SaveAllChanges()
         {
-            _context.SaveChanges();
+            context.SaveChanges();
         }
 
         public bool HasChanges()
         {
-            _context.ChangeTracker.DetectChanges();
-            return _context.ChangeTracker.HasChanges();
+            context.ChangeTracker.DetectChanges();
+            return context.ChangeTracker.HasChanges();
         }
     }
 }

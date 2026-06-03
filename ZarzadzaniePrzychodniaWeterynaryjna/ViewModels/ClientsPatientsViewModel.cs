@@ -1,58 +1,121 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using ZarzadzaniePrzychodniaWeterynaryjna.Repositories;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
-    public partial class ClientsPatientsViewModel : ObservableObject
+    public partial class ClientsPatientsViewModel : ObservableValidator
     {
         private readonly ClientRepository _clientRepository;
+        private readonly PatientRepository _patientRepository;
+        private readonly IDialogService _dialogService;
 
-        [ObservableProperty] private ObservableCollection<Client> _clientsList = new();
+        [ObservableProperty] private ObservableCollection<Client> _clientsList = [];
         [ObservableProperty] private ICollectionView _clientsView = null!;
 
         [ObservableProperty] private string _searchQuery = string.Empty;
         partial void OnSearchQueryChanged(string value) => ClientsView?.Refresh();
 
         [ObservableProperty] private int _selectedClientType = 0;
-        [ObservableProperty] private string _newFirstName = string.Empty;
-        [ObservableProperty] private string _newLastName = string.Empty;
-        [ObservableProperty] private string _newCompanyName = string.Empty;
-        [ObservableProperty] private string _newPhoneNumber = string.Empty;
-        [ObservableProperty] private string _newEmail = string.Empty;
 
-        [ObservableProperty] private ObservableCollection<Patient> _patientsList = new();
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [CustomValidation(typeof(ClientsPatientsViewModel), nameof(ValidateFirstName))]
+        private string _newFirstName = string.Empty;
+
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [CustomValidation(typeof(ClientsPatientsViewModel), nameof(ValidateLastName))]
+        private string _newLastName = string.Empty;
+
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [CustomValidation(typeof(ClientsPatientsViewModel), nameof(ValidateCompanyName))]
+        private string _newCompanyName = string.Empty;
+
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [RegularExpression(@"^\+?[0-9]{9,15}$", ErrorMessage = "Wprowadź poprawny numer telefonu (np. 123456789)!")]
+        private string _newPhoneNumber = string.Empty;
+
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Email jest wymagany!")]
+        [EmailAddress(ErrorMessage = "Wprowadź poprawny adres email (np. jan@kowalski.pl)!")]
+        private string _newEmail = string.Empty;
+
+        [ObservableProperty] private ObservableCollection<Patient> _patientsList = [];
         [ObservableProperty] private Client? _selectedClient;
 
         partial void OnSelectedClientChanged(Client? value) => _ = LoadPatientsAsync();
 
         [ObservableProperty] private Patient? _selectedPatient;
 
-        [ObservableProperty] private string _newPatientName = string.Empty;
-        [ObservableProperty] private string _newPatientSpecies = string.Empty;
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Imię pacjenta jest wymagane!")]
+        private string _newPatientName = string.Empty;
+
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Gatunek pacjenta jest wymagany!")]
+        private string _newPatientSpecies = string.Empty;
+
         [ObservableProperty] private string _newPatientBreed = string.Empty;
         [ObservableProperty] private int _newPatientGenderIndex = 0;
-        [ObservableProperty] private decimal? _newPatientWeight;
 
-        public ClientsPatientsViewModel(ClientRepository clientRepository)
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Waga jest wymagana!")]
+        [Range(0.01, 1000.0, ErrorMessage = "Waga musi być większa od 0!")]
+        private decimal? _newPatientWeight;
+
+        public ClientsPatientsViewModel(ClientRepository clientRepository, PatientRepository patientRepository, IDialogService dialogService)
         {
             _clientRepository = clientRepository;
+            _patientRepository = patientRepository;
+            _dialogService = dialogService;
             _ = LoadClientsAsync();
+        }
+
+        public static ValidationResult? ValidateFirstName(string name, ValidationContext context)
+        {
+            var vm = (ClientsPatientsViewModel)context.ObjectInstance;
+            if ((vm.SelectedClientType == 0 || vm.SelectedClientType == 2) && string.IsNullOrWhiteSpace(name))
+                return new ValidationResult("Imię jest wymagane!");
+            return ValidationResult.Success;
+        }
+
+        public static ValidationResult? ValidateLastName(string name, ValidationContext context)
+        {
+            var vm = (ClientsPatientsViewModel)context.ObjectInstance;
+            if ((vm.SelectedClientType == 0 || vm.SelectedClientType == 2) && string.IsNullOrWhiteSpace(name))
+                return new ValidationResult("Nazwisko jest wymagane!");
+            return ValidationResult.Success;
+        }
+
+        public static ValidationResult? ValidateCompanyName(string name, ValidationContext context)
+        {
+            var vm = (ClientsPatientsViewModel)context.ObjectInstance;
+            if ((vm.SelectedClientType == 1 || vm.SelectedClientType == 2) && string.IsNullOrWhiteSpace(name))
+                return new ValidationResult("Nazwa firmy jest wymagana!");
+            return ValidationResult.Success;
         }
 
         private async Task LoadClientsAsync()
         {
             var lista = await _clientRepository.GetClientsAsync();
             ClientsList = new ObservableCollection<Client>(lista);
-
             ClientsView = CollectionViewSource.GetDefaultView(ClientsList);
             ClientsView.Filter = FilterClients;
         }
@@ -60,7 +123,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         private async Task LoadPatientsAsync()
         {
             if (SelectedClient == null) { PatientsList.Clear(); return; }
-            var lista = await _clientRepository.GetPatientsAsync(SelectedClient.Id);
+            var lista = await _patientRepository.GetPatientsAsync(SelectedClient.Id);
             PatientsList = new ObservableCollection<Patient>(lista);
         }
 
@@ -69,35 +132,22 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             if (obj is not Client w) return false;
             if (string.IsNullOrWhiteSpace(SearchQuery)) return true;
 
-            var search = SearchQuery.ToLower();
-            return (w.FirstName?.ToLower().Contains(search) == true) ||
-                   (w.LastName?.ToLower().Contains(search) == true) ||
-                   (w.CompanyName?.ToLower().Contains(search) == true) ||
-                   (w.PhoneNumber?.Contains(search) == true);
+            return (w.FirstName?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true) ||
+                   (w.LastName?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true) ||
+                   (w.CompanyName?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true) ||
+                   (w.PhoneNumber?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) == true);
         }
 
         [RelayCommand]
         private void AddClient()
         {
-            if (string.IsNullOrWhiteSpace(NewEmail)) { MessageBox.Show("Email jest wymagany!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-            if ((SelectedClientType == 0 || SelectedClientType == 2) && (string.IsNullOrWhiteSpace(NewFirstName) || string.IsNullOrWhiteSpace(NewLastName))) { MessageBox.Show("Uzupełnij Imię i Nazwisko!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-            if ((SelectedClientType == 1 || SelectedClientType == 2) && string.IsNullOrWhiteSpace(NewCompanyName)) { MessageBox.Show("Uzupełnij Nazwę Firmy!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            ValidateAllProperties(); 
 
-            if (!System.Text.RegularExpressions.Regex.IsMatch(NewEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (HasErrors)
             {
-                MessageBox.Show("Wprowadź poprawny adres email (np. jan@kowalski.pl)!", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
+                var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
+                _dialogService.ShowError(errors, "Błędy walidacji formularza");
                 return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(NewPhoneNumber))
-            {
-                var cleanPhone = NewPhoneNumber.Replace(" ", "").Replace("-", "");
-
-                if (!System.Text.RegularExpressions.Regex.IsMatch(cleanPhone, @"^\+?[0-9]{9,15}$"))
-                {
-                    MessageBox.Show("Wprowadź poprawny numer telefonu (np. 123456789 lub +48 123 456 789)!", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
             }
 
             var newClient = new Client
@@ -107,27 +157,35 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 CompanyName = string.IsNullOrWhiteSpace(NewCompanyName) ? null : NewCompanyName,
                 PhoneNumber = string.IsNullOrWhiteSpace(NewPhoneNumber) ? null : NewPhoneNumber,
                 Email = NewEmail,
-                RegistrationDate = System.DateTime.Now
+                RegistrationDate = DateTime.Now
             };
 
             try
             {
                 _clientRepository.AddClient(newClient);
-                MessageBox.Show("Dodano klienta!", "Sukces");
+                _dialogService.ShowInformation("Dodano klienta!", "Sukces");
                 WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
             }
-            catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
 
             _ = LoadClientsAsync();
             NewFirstName = NewLastName = NewCompanyName = NewPhoneNumber = NewEmail = string.Empty;
+            ClearErrors();
         }
 
         [RelayCommand]
         private void AddPatient()
         {
-            if (SelectedClient == null) { MessageBox.Show("Wybierz właściciela!", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information); return; }
-            if (string.IsNullOrWhiteSpace(NewPatientName) || string.IsNullOrWhiteSpace(NewPatientSpecies)) { MessageBox.Show("Uzupełnij Imię i Gatunek!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
-            if (NewPatientWeight <= 0) { MessageBox.Show("Waga musi być > 0!", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            if (SelectedClient == null) { _dialogService.ShowInformation("Wybierz właściciela!", "Informacja"); return; }
+
+            ValidateAllProperties();
+
+            if (HasErrors)
+            {
+                var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
+                _dialogService.ShowError(errors, "Błędy walidacji formularza");
+                return;
+            }
 
             var newPatient = new Patient
             {
@@ -141,87 +199,73 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
             try
             {
-                _clientRepository.AddPatient(newPatient);
-                MessageBox.Show("Dodano pacjenta!", "Sukces");
+                _patientRepository.AddPatient(newPatient);
+                _dialogService.ShowInformation("Dodano pacjenta!", "Sukces");
                 WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
             }
-            catch (System.Exception ex) { MessageBox.Show($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
 
             _ = LoadPatientsAsync();
-            NewPatientName = NewPatientSpecies = NewPatientBreed = string.Empty; NewPatientWeight = null;
+            NewPatientName = NewPatientSpecies = NewPatientBreed = string.Empty;
+            NewPatientWeight = null;
+            ClearErrors();
         }
 
         [RelayCommand]
         private void EditClient()
         {
-            if(!_clientRepository.HasChanges())
+            if (!_clientRepository.HasChanges())
             {
-                MessageBox.Show("Nie wprowadzono żadnych zmian w danych klientów", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych klientów", "Informacja");
                 return;
-            }
-
-            foreach (var client in ClientsList)
-            {
-                if (string.IsNullOrWhiteSpace(client.Email) || !System.Text.RegularExpressions.Regex.IsMatch(client.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                {
-                    MessageBox.Show($"Klient {client.DisplayName} ma niepoprawny adres email!\nPopraw to w tabeli przed zapisem.", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(client.PhoneNumber))
-                {
-                    var cleanPhone = client.PhoneNumber.Replace(" ", "").Replace("-", "");
-                    if (!System.Text.RegularExpressions.Regex.IsMatch(cleanPhone, @"^\+?[0-9]{9,15}$"))
-                    {
-                        MessageBox.Show($"Klient {client.DisplayName} ma niepoprawny numer telefonu!\nPopraw to w tabeli przed zapisem.", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return; 
-                    }
-                }
             }
 
             try
             {
                 _clientRepository.SaveAllChanges();
-                MessageBox.Show("Zapisano wszystkie zmiany w klientach!", "Sukces");
+                _dialogService.ShowInformation("Zapisano wszystkie zmiany w klientach!", "Sukces");
                 _ = LoadClientsAsync();
                 WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
             }
-            catch (System.Exception ex) { MessageBox.Show($"Błąd zapisu: {ex.Message}"); }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd zapisu: {ex.Message}", "Błąd"); }
         }
 
         [RelayCommand]
         private void EditPatient()
         {
-            if (!_clientRepository.HasChanges())
+            if (!_patientRepository.HasChanges())
             {
-                MessageBox.Show("Nie wprowadzono żadnych zmian w danych pacjentów", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych pacjentów", "Informacja");
                 return;
             }
 
             try
             {
-                _clientRepository.SaveAllChanges();
-                MessageBox.Show("Zapisano wszystkie zmiany w pacjentach!", "Sukces");
+                _patientRepository.SaveAllChanges();
+                _dialogService.ShowInformation("Zapisano wszystkie zmiany w pacjentach!", "Sukces");
                 _ = LoadPatientsAsync();
                 WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
             }
-            catch (System.Exception ex) { MessageBox.Show($"Błąd zapisu: {ex.Message}"); }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd zapisu: {ex.Message}", "Błąd"); }
         }
 
         [RelayCommand]
         private void RemoveClient(Client client)
         {
             if (client == null) return;
-            if (MessageBox.Show($"Czy na pewno chcesz usunąć klienta {client.DisplayName}?", "Potwierdzenie", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć klienta {client.DisplayName}?", "Potwierdzenie"))
             {
                 try
                 {
                     _clientRepository.RemoveClient(client);
-                    if (SelectedClient?.Id == client.Id) SelectedClient = null; // Czyszczenie zaznaczenia
+                    if (SelectedClient?.Id == client.Id) SelectedClient = null;
                     _ = LoadClientsAsync();
                     WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
                 }
-                catch (System.Exception) { MessageBox.Show("Nie można usunąć tego klienta, ponieważ ma przypisane zwierzęta w systemie. Najpierw usuń jego zwierzęta.", "Błąd usuwania", MessageBoxButton.OK, MessageBoxImage.Warning); }
+                catch (Exception)
+                {
+                    _dialogService.ShowError("Nie można usunąć tego klienta, ponieważ ma przypisane zwierzęta w systemie. Najpierw usuń jego zwierzęta.", "Błąd usuwania");
+                }
             }
         }
 
@@ -229,15 +273,18 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         private void RemovePatient(Patient patient)
         {
             if (patient == null) return;
-            if (MessageBox.Show($"Czy na pewno chcesz usunąć pacjenta {patient.Name}?", "Potwierdzenie", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć pacjenta {patient.Name}?", "Potwierdzenie"))
             {
                 try
                 {
-                    _clientRepository.RemovePatient(patient);
+                    _patientRepository.RemovePatient(patient);
                     _ = LoadPatientsAsync();
                     WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
                 }
-                catch (System.Exception) { MessageBox.Show("Nie można usunąć pacjenta, ponieważ ma zapisaną historię wizyt.", "Błąd usuwania", MessageBoxButton.OK, MessageBoxImage.Warning); }
+                catch (Exception)
+                {
+                    _dialogService.ShowError("Nie można usunąć pacjenta, ponieważ ma zapisaną historię wizyt.", "Błąd usuwania");
+                }
             }
         }
     }

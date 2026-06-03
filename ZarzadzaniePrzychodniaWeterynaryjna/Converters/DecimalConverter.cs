@@ -15,9 +15,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Converters
         {
             if (value is string wpisanyTekst)
             {
-                wpisanyTekst = wpisanyTekst.Replace(".", ",");
-
-                if (decimal.TryParse(wpisanyTekst, out decimal wynik))
+                if (decimal.TryParse(wpisanyTekst.Replace(".", ","), NumberStyles.Any, culture, out decimal wynik))
                 {
                     return wynik;
                 }

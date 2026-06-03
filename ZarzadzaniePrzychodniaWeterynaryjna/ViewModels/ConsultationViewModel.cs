@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using ZarzadzaniePrzychodniaWeterynaryjna.Repositories;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
@@ -14,24 +14,26 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
     {
         private readonly ConsultationRepository _consultationRepository;
         private readonly CatalogRepository _catalogRepository;
+        private readonly IDialogService _dialogService;
 
         [ObservableProperty] private Appointment? _activeAppointment;
-        [ObservableProperty] private ObservableCollection<MedicalVisit> _visitHistory = new();
+        [ObservableProperty] private ObservableCollection<MedicalVisit> _visitHistory = [];
 
         [ObservableProperty] private string _newInterview = string.Empty;
         [ObservableProperty] private string _newDiagnosis = string.Empty;
         [ObservableProperty] private string _newRecommendations = string.Empty;
 
-        [ObservableProperty] private ObservableCollection<CatalogItem> _availableCatalog = new();
-        [ObservableProperty] private ObservableCollection<VisitItem> _addedItems = new();
+        [ObservableProperty] private ObservableCollection<CatalogItem> _availableCatalog = [];
+        [ObservableProperty] private ObservableCollection<VisitItem> _addedItems = [];
         [ObservableProperty] private CatalogItem? _selectedCatalogItem;
         [ObservableProperty] private decimal _newQuantity = 1;
         [ObservableProperty] private decimal _totalSum = 0;
 
-        public ConsultationViewModel(ConsultationRepository consultationRepository, CatalogRepository catalogRepository)
+        public ConsultationViewModel(ConsultationRepository consultationRepository, CatalogRepository catalogRepository, IDialogService dialogService)
         {
             _consultationRepository = consultationRepository;
             _catalogRepository = catalogRepository;
+            _dialogService = dialogService;
             WeakReferenceMessenger.Default.Register<CatalogChangedMessage>(this, (r, m) => LoadCatalog());
         }
 
@@ -66,7 +68,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         private void AddItem()
         {
             if (SelectedCatalogItem == null) return;
-            if (NewQuantity <= 0) { MessageBox.Show("Ilość musi być większa od 0.", "Błąd"); return; }
+            if (NewQuantity <= 0) { _dialogService.ShowError("Ilość musi być większa od 0.", "Błąd"); return; }
 
             var newItem = new VisitItem
             {
@@ -106,7 +108,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 
             if (string.IsNullOrWhiteSpace(NewInterview) && string.IsNullOrWhiteSpace(NewDiagnosis))
             {
-                MessageBox.Show("Uzupełnij Wywiad lub Rozpoznanie przed zakończeniem wizyty.", "Informacja");
+                _dialogService.ShowInformation("Uzupełnij Wywiad lub Rozpoznanie przed zakończeniem wizyty.", "Informacja");
                 return;
             }
 
@@ -124,13 +126,13 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 _consultationRepository.SaveConsultation(newVisit, AddedItems);
 
                 ActiveAppointment = null;
-                MessageBox.Show($"Wizyta zakończona. Suma do zapłaty: {TotalSum:N2} zł", "Sukces");
+                _dialogService.ShowInformation($"Wizyta zakończona. Suma do zapłaty: {TotalSum:N2} zł", "Sukces");
 
                 WeakReferenceMessenger.Default.Send(new ConsultationEndedMessage());
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Wystąpił błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd");
+                _dialogService.ShowError($"Wystąpił błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd");
             }
         }
     }

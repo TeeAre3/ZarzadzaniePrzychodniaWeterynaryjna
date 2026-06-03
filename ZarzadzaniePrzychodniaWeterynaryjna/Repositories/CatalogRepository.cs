@@ -5,18 +5,13 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class CatalogRepository
+    public class CatalogRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public CatalogRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public List<CatalogItem> GetCatalog()
         {
-            return _context.CatalogItems.OrderBy(c => c.Name).ToList();
+            return [.. _context.CatalogItems.OrderBy(c => c.Name)];
         }
 
         public void AddItem(CatalogItem item)

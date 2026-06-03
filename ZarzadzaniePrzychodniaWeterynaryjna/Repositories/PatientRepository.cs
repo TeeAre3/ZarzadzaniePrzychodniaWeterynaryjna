@@ -1,0 +1,44 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using ZarzadzaniePrzychodniaWeterynaryjna.Models;
+using ZarzadzaniePrzychodniaWeterynaryjna.Data;
+using System.Runtime.CompilerServices;
+
+namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
+{
+    public class PatientRepository(ApplicationDbContext _context)
+    {
+        public async Task<List<Patient>> GetPatientsAsync(int clientId)
+        {
+            return await _context.Patients.Where(p => p.ClientId == clientId).ToListAsync();
+        }
+
+        public void AddPatient(Patient patient)
+        {
+            _context.Patients.Add(patient);
+            _context.SaveChanges();
+        }
+        public void UpdatePatient(Patient patient)
+        {
+            _context.Patients.Update(patient);
+            _context.SaveChanges();
+        }
+        public void RemovePatient(Patient patient)
+        {
+            _context.Patients.Remove(patient);
+            _context.SaveChanges();
+        }
+         public void SaveAllChanges()
+        {
+            _context.SaveChanges();
+        }
+
+        public bool HasChanges()
+        {
+            _context.ChangeTracker.DetectChanges();
+            return _context.ChangeTracker.HasChanges();
+        }
+    }
+}

@@ -7,35 +7,8 @@
         Height="750" Width="1100" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <Style TargetType="Button">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                CornerRadius="6" 
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.85"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Opacity" Value="0.6"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="TopMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Background" Value="{StaticResource MenuBackgroundBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Margin" Value="10,10,5,10"/>
@@ -65,7 +38,6 @@
                 <DataTemplate DataType="{x:Type viewmodels:CatalogViewModel}">
                     <views:CatalogView />
                 </DataTemplate>
-
                 <DataTemplate DataType="{x:Type viewmodels:StatisticsViewModel}">
                     <views:StatisticsView />
                 </DataTemplate>

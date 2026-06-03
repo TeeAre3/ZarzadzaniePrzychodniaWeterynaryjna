@@ -51,6 +51,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
             }
         }
 
-        public ICollection<Patient> Patients { get; set; } = new List<Patient>();
+        public ICollection<Patient> Patients { get; set; } = [];
     }
 }

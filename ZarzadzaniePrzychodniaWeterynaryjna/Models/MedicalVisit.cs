@@ -30,6 +30,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Models
         [Column("Zalecenia")]
         public string? Recommendations { get; set; }
 
-        public virtual ICollection<VisitItem> VisitItems { get; set; } = new List<VisitItem>();
+        public virtual ICollection<VisitItem> VisitItems { get; set; } = [];
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 using ZarzadzaniePrzychodniaWeterynaryjna.Repositories;
+using ZarzadzaniePrzychodniaWeterynaryjna.Helpers;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
@@ -14,12 +16,15 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
     {
         private readonly AppointmentRepository _appointmentRepository;
         private readonly ClientRepository _clientRepository;
+        private readonly PatientRepository _patientRepository;
         private readonly CatalogRepository _catalogRepository;
+        private readonly IDialogService _dialogService;
 
-        [ObservableProperty] private ObservableCollection<Appointment> _appointmentList = new();
-        [ObservableProperty] private ObservableCollection<Client> _clientsList = new();
-        [ObservableProperty] private ObservableCollection<Patient> _patientsList = new();
-        [ObservableProperty] private ObservableCollection<CatalogItem> _servicesList = new();
+        private static readonly ObservableCollection<Appointment> value = [];
+        [ObservableProperty] private ObservableCollection<Appointment> _appointmentList = value;
+        [ObservableProperty] private ObservableCollection<Client> _clientsList = [];
+        [ObservableProperty] private ObservableCollection<Patient> _patientsList = [];
+        [ObservableProperty] private ObservableCollection<CatalogItem> _servicesList = [];
 
         [ObservableProperty] private Client? _selectedClient;
         partial void OnSelectedClientChanged(Client? value) => _ = LoadPatientsAsync();
@@ -33,18 +38,25 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty] private int _estimatedDurationMin = 15;
         [ObservableProperty] private Appointment? _selectedAppointment;
 
-        public ScheduleViewModel(AppointmentRepository appointmentRepository, ClientRepository clientRepository, CatalogRepository catalogRepository)
+        public ScheduleViewModel(
+            AppointmentRepository appointmentRepository,
+            ClientRepository clientRepository,
+            PatientRepository patientRepository,
+            CatalogRepository catalogRepository,
+            IDialogService dialogService)
         {
             _appointmentRepository = appointmentRepository;
             _clientRepository = clientRepository;
+            _patientRepository = patientRepository;
             _catalogRepository = catalogRepository;
+            _dialogService = dialogService;
+
             _ = LoadClientsAsync();
             LoadServices();
             LoadSchedule();
 
             WeakReferenceMessenger.Default.Register<CatalogChangedMessage>(this, (r, m) => LoadServices());
             WeakReferenceMessenger.Default.Register<ConsultationEndedMessage>(this, (r, m) => LoadSchedule());
-
             WeakReferenceMessenger.Default.Register<ClientChangedMessage>(this, (r, m) => _ = LoadClientsAsync());
             WeakReferenceMessenger.Default.Register<PatientChangedMessage>(this, (r, m) =>
             {
@@ -52,16 +64,16 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             });
         }
 
-        private async System.Threading.Tasks.Task LoadClientsAsync()
+        private async Task LoadClientsAsync()
         {
             var lista = await _clientRepository.GetClientsAsync();
             ClientsList = new ObservableCollection<Client>(lista);
         }
 
-        private async System.Threading.Tasks.Task LoadPatientsAsync()
+        private async Task LoadPatientsAsync()
         {
             if (SelectedClient == null) { PatientsList.Clear(); return; }
-            var lista = await _clientRepository.GetPatientsAsync(SelectedClient.Id);
+            var lista = await _patientRepository.GetPatientsAsync(SelectedClient.Id);
             PatientsList = new ObservableCollection<Patient>(lista);
         }
 
@@ -86,17 +98,18 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [RelayCommand]
         private void AddAppointment()
         {
-            if (SelectedPatient == null) 
+            if (SelectedPatient == null)
             {
-                MessageBox.Show("Wybierz pacjenta!", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information); 
-                return; 
-            }
-
-            if(string.IsNullOrWhiteSpace(ScheduledTime) || !System.Text.RegularExpressions.Regex.IsMatch(ScheduledTime, @"^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$"))
-            {
-                MessageBox.Show("Wprowadź poprawną godzinę w formacie GG:MM (np. 21:37)", "Błąd walidacji", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialogService.ShowInformation("Wybierz pacjenta!", "Informacja");
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(ScheduledTime) || !ValidationHelper.IsValidTimeFormat(ScheduledTime))
+            {
+                _dialogService.ShowError("Wprowadź poprawną godzinę w formacie GG:MM (np. 21:37)", "Błąd walidacji");
+                return;
+            }
+
             var newAppointment = new Appointment
             {
                 PatientId = SelectedPatient.Id,
@@ -111,7 +124,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 _appointmentRepository.AddAppointment(newAppointment);
                 LoadSchedule();
             }
-            catch (Exception ex) { MessageBox.Show($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}"); }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); }
         }
 
         [RelayCommand]
@@ -124,13 +137,13 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 _appointmentRepository.RemoveAppointment(SelectedAppointment);
                 LoadSchedule();
             }
-            catch (Exception ex) { MessageBox.Show($"Błąd: {ex.Message}"); }
+            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.Message}", "Błąd"); }
         }
 
         [RelayCommand]
         private void StartConsultation()
         {
-            if (SelectedAppointment == null) { MessageBox.Show("Wybierz rezerwację!"); return; }
+            if (SelectedAppointment == null) { _dialogService.ShowInformation("Wybierz rezerwację!", "Informacja"); return; }
             WeakReferenceMessenger.Default.Send(new GoToConsultationMessage(SelectedAppointment));
         }
     }

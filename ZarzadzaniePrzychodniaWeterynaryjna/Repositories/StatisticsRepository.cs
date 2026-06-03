@@ -7,32 +7,24 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class StatisticsRepository
+    public class StatisticsRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context = context;
 
-        public StatisticsRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
         public List<InvoiceDto> GetInvoices()
         {
-            var visits = _context.MedicalVisits
+            return [.. _context.MedicalVisits
                 .Include(v => v.Appointment!).ThenInclude(a => a.Patient!).ThenInclude(p => p.Client!)
                 .Include(v => v.VisitItems)
                 .OrderByDescending(v => v.VisitDate)
-                .ToList();
-
-            var invoices = visits.Select(v => new InvoiceDto
-            {
-                AppointmentId = v.Id,
-                Date = v.VisitDate,
-                Client = v.Appointment?.Patient?.Client?.DisplayName ?? "Brak danych",
-                Patient = v.Appointment?.Patient?.Name ?? "Brak danych",
-                TotalAmmount = v.VisitItems.Sum(p => p.AppliedPrice * p.Quantity * (1 + (p.AppliedVAT / 100m)))
-            }).ToList();
-
-            return invoices;
+                .Select(v => new InvoiceDto
+                {
+                    AppointmentId = v.Id,
+                    Date = v.VisitDate,
+                    Client = v.Appointment!.Patient!.Client!.DisplayName ?? "Brak danych",
+                    Patient = v.Appointment!.Patient!.Name ?? "Brak danych",
+                    TotalAmmount = v.VisitItems.Sum(p => p.AppliedPrice * p.Quantity * (1 + (p.AppliedVAT / 100m)))
+                })];
         }
     }
 }

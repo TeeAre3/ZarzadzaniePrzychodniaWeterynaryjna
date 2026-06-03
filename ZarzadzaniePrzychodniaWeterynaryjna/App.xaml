@@ -3,6 +3,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ZarzadzaniePrzychodniaWeterynaryjna">
     <Application.Resources>
-         
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0078D7"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#28A745"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#DC3545"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#FF9800"/>
+        <SolidColorBrush x:Key="InfoBrush" Color="#17A2B8"/>
+        <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#2C3E50"/>
+
+        <Style TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

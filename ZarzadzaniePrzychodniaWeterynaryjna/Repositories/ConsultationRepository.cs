@@ -5,14 +5,9 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class ConsultationRepository
+    public class ConsultationRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public ConsultationRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public List<MedicalVisit> GetPatientHistory(int patientId)
         {

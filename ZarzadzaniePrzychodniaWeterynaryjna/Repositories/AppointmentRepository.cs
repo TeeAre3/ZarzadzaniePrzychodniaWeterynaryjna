@@ -6,14 +6,9 @@ using ZarzadzaniePrzychodniaWeterynaryjna.Data;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
-    public class AppointmentRepository
+    public class AppointmentRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public AppointmentRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public List<Appointment> GetPlannedAppointments()
         {

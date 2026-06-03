@@ -10,9 +10,9 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
 {
     public partial class ClientsPatientsView : UserControl
     {
-        private Dictionary<string, string> _originalValues = new();
-
-        private HashSet<string> _dirtyCells = new();
+        private readonly Dictionary<string, string> _originalValues = [];
+        private readonly HashSet<string> _dirtyCells = [];
+        private static readonly Regex WeightRegex = MyRegex();
 
         public ClientsPatientsView()
         {
@@ -30,8 +30,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
 
         private void Weight_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            Regex regex = new Regex("[^0-9,.]+");
-            e.Handled = regex.IsMatch(e.Text);
+            e.Handled = WeightRegex.IsMatch(e.Text);
         }
 
         private void DataGrid_Sorting(object sender, DataGridSortingEventArgs e)
@@ -84,13 +83,15 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Views
                 }
             }
         }
-
-        private T GetParent<T>(DependencyObject child) where T : DependencyObject
+        private T? GetParent<T>(DependencyObject child) where T : DependencyObject
         {
             DependencyObject parentObject = VisualTreeHelper.GetParent(child);
             if (parentObject == null) return null;
             if (parentObject is T parent) return parent;
             return GetParent<T>(parentObject);
         }
+
+        [GeneratedRegex("[^0-9,.]+", RegexOptions.Compiled)]
+        private static partial Regex MyRegex();
     }
 }

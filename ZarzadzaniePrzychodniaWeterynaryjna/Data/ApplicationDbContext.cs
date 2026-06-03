@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.IO;
-using Microsoft.Extensions.Configuration;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
         public DbSet<Client> Clients { get; set; } = null!;
         public DbSet<Patient> Patients { get; set; } = null!;
@@ -13,20 +11,6 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Data
         public DbSet<Appointment> Appointments { get; set; } = null!;
         public DbSet<MedicalVisit> MedicalVisits { get; set; } = null!;
         public DbSet<VisitItem> VisitItems { get; set; } = null!;
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                    .Build();
-
-                string? connectionString = configuration.GetConnectionString("DefaultConnection")!;
-                optionsBuilder.UseSqlServer(connectionString);
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -2,10 +2,9 @@
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna
 {
-    public class GoToConsultationMessage
+    public class GoToConsultationMessage(Appointment r)
     {
-        public Appointment Appointment { get; }
-        public GoToConsultationMessage(Appointment r) => Appointment = r;
+        public Appointment Appointment { get; } = r;
     }
     public class ClientChangedMessage { }
     public class PatientChangedMessage { }

@@ -10,6 +10,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using ZarzadzaniePrzychodniaWeterynaryjna.DTOs;
 using ZarzadzaniePrzychodniaWeterynaryjna.Repositories;
+using ZarzadzaniePrzychodniaWeterynaryjna.Services;
 
 namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
 {
@@ -17,12 +18,12 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
     {
         private readonly StatisticsRepository _statisticsRepository;
 
-        [ObservableProperty] private ObservableCollection<InvoiceDto> _invoiceList = new();
+        [ObservableProperty] private ObservableCollection<InvoiceDto> _invoiceList = [];
         [ObservableProperty] private decimal _totalRevenue = 0;
 
-        [ObservableProperty] private ISeries[] _chartSeries = Array.Empty<ISeries>();
-        [ObservableProperty] private Axis[] _xAxis = Array.Empty<Axis>();
-        [ObservableProperty] private Axis[] _yAxis = Array.Empty<Axis>();
+        [ObservableProperty] private ISeries[] _chartSeries = [];
+        [ObservableProperty] private Axis[] _xAxis = [];
+        [ObservableProperty] private Axis[] _yAxis = [];
 
         public StatisticsViewModel(StatisticsRepository statisticsRepository)
         {
@@ -53,8 +54,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
             var values = revenueByDay.Select(g => (double)g.Sum(f => f.TotalAmmount)).ToArray();
             var maxRevenue = values.Length > 0 ? values.Max() : 0;
 
-            ChartSeries = new ISeries[]
-            {
+            ChartSeries =
+            [
                 new ColumnSeries<double>
                 {
                     Name = "Przychód (zł)",
@@ -65,20 +66,20 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                     DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Top,
                     DataLabelsFormatter = point => $"{point.Model:N0} zł"
                 }
-            };
+            ];
 
-            XAxis = new Axis[]
-            {
+            XAxis =
+            [
                 new Axis
                 {
                     Labels = dates,
                     LabelsPaint = new SolidColorPaint(SKColors.Gray),
                     TextSize = 14
                 }
-            };
+            ];
 
-            YAxis = new Axis[]
-            {
+            YAxis =
+            [
                 new Axis
                 {
                     MinLimit = 0,
@@ -86,7 +87,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                     LabelsPaint = new SolidColorPaint(SKColors.Gray),
                     TextSize = 14
                 }
-            };
+            ];
         }
     }
 }
