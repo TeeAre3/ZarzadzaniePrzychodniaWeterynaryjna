@@ -7,17 +7,28 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.Repositories
 {
     public class CatalogRepository(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context = context;
-
         public List<CatalogItem> GetCatalog()
         {
-            return [.. _context.CatalogItems.OrderBy(c => c.Name)];
+            return [.. context.CatalogItems.OrderBy(c => c.Name)];
         }
 
         public void AddItem(CatalogItem item)
         {
-            _context.CatalogItems.Add(item);
-            _context.SaveChanges();
+            context.CatalogItems.Add(item);
+            context.SaveChanges();
+        }
+
+        public void RemoveItem(CatalogItem item)
+        {
+            bool isUsed = context.VisitItems.Any(v => v.CatalogItemId == item.Id);
+
+            if (isUsed)
+            {
+                throw new System.InvalidOperationException("Nie można usunąć tej pozycji. Została już użyta w historycznej wizycie pacjenta.");
+            }
+
+            context.CatalogItems.Remove(item);
+            context.SaveChanges();
         }
     }
 }

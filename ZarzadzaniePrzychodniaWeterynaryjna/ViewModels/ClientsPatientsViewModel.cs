@@ -141,12 +141,19 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [RelayCommand]
         private void AddClient()
         {
-            ValidateAllProperties(); 
+            ClearErrors();
+
+            ValidateProperty(NewFirstName, nameof(NewFirstName));
+            ValidateProperty(NewLastName, nameof(NewLastName));
+            ValidateProperty(NewCompanyName, nameof(NewCompanyName));
+            ValidateProperty(NewPhoneNumber, nameof(NewPhoneNumber));
+            ValidateProperty(NewEmail, nameof(NewEmail));
+
 
             if (HasErrors)
             {
                 var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
-                _dialogService.ShowError(errors, "Błędy walidacji formularza");
+                _dialogService.ShowError(errors, "Błędy walidacji formularza klienta");
                 return;
             }
 
@@ -177,13 +184,17 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         private void AddPatient()
         {
             if (SelectedClient == null) { _dialogService.ShowInformation("Wybierz właściciela!", "Informacja"); return; }
+            
+            ClearErrors();
 
-            ValidateAllProperties();
+            ValidateProperty(NewPatientName, nameof(NewPatientName));
+            ValidateProperty(NewPatientSpecies, nameof(NewPatientSpecies));
+            ValidateProperty(NewPatientWeight, nameof(NewPatientWeight));
 
             if (HasErrors)
             {
                 var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
-                _dialogService.ShowError(errors, "Błędy walidacji formularza");
+                _dialogService.ShowError(errors, "Błędy walidacji formularza pacjenta");
                 return;
             }
 
