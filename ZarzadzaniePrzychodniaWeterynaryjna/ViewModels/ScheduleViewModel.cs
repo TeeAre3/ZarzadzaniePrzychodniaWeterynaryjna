@@ -98,11 +98,7 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [RelayCommand]
         private void AddAppointment()
         {
-            if (SelectedPatient == null)
-            {
-                _dialogService.ShowInformation("Wybierz pacjenta!", "Informacja");
-                return;
-            }
+            if (SelectedPatient == null) { _dialogService.ShowInformation("Wybierz pacjenta!", "Informacja"); return; }
 
             if (string.IsNullOrWhiteSpace(ScheduledTime) || !ValidationHelper.IsValidTimeFormat(ScheduledTime))
             {
@@ -119,32 +115,43 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 Status = "Planowana"
             };
 
-            try
-            {
-                _appointmentRepository.AddAppointment(newAppointment);
-                LoadSchedule();
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); }
+            ExecuteSafeOperation(
+                dbAction: () => _appointmentRepository.AddAppointment(newAppointment),
+                onSuccess: () => LoadSchedule()
+            );
         }
 
         [RelayCommand]
-        private void RemoveAppointment()
-        {
-            if (SelectedAppointment == null) return;
-
-            try
-            {
-                _appointmentRepository.RemoveAppointment(SelectedAppointment);
-                LoadSchedule();
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.Message}", "Błąd"); }
-        }
+        private void RemoveAppointment() =>
+            RemoveEntity(SelectedAppointment, "Czy na pewno chcesz usunąć tę rezerwację?",
+                removeAction: () => _appointmentRepository.RemoveAppointment(SelectedAppointment!),
+                onSuccess: () => LoadSchedule(),
+                errorMsg: "Nie udało się usunąć rezerwacji."
+            );
 
         [RelayCommand]
         private void StartConsultation()
         {
             if (SelectedAppointment == null) { _dialogService.ShowInformation("Wybierz rezerwację!", "Informacja"); return; }
             WeakReferenceMessenger.Default.Send(new GoToConsultationMessage(SelectedAppointment));
+        }
+
+        private void ExecuteSafeOperation(Action dbAction, Action onSuccess, string? successMsg = null, string? errorMsg = null)
+        {
+            try
+            {
+                dbAction();
+                if (!string.IsNullOrEmpty(successMsg)) _dialogService.ShowInformation(successMsg, "Sukces");
+                onSuccess?.Invoke();
+            }
+            catch (Exception ex) { _dialogService.ShowError(errorMsg ?? $"Błąd SQL: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); }
+        }
+
+        private void RemoveEntity<T>(T entity, string promptMessage, Action removeAction, Action onSuccess, string errorMsg)
+        {
+            if (entity == null) return;
+            if (_dialogService.AskQuestion(promptMessage, "Potwierdzenie"))
+                ExecuteSafeOperation(removeAction, onSuccess, null, errorMsg);
         }
     }
 }

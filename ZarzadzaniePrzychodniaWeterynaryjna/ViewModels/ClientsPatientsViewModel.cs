@@ -77,8 +77,8 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Waga jest wymagana!")]
-        [Range(0.01, 1000.0, ErrorMessage = "Waga musi być większa od 0!")]
-        private decimal? _newPatientWeight;
+        [RegularExpression(@"^[0-9]+([.,][0-9]+)?$", ErrorMessage = "Wprowadź poprawną wagę (np. 2.5)!")]
+        private string _newPatientWeight = string.Empty;
 
         public ClientsPatientsViewModel(ClientRepository clientRepository, PatientRepository patientRepository, IDialogService dialogService)
         {
@@ -124,7 +124,12 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         {
             if (SelectedClient == null) { PatientsList.Clear(); return; }
             var lista = await _patientRepository.GetPatientsAsync(SelectedClient.Id);
-            PatientsList = new ObservableCollection<Patient>(lista);
+
+            PatientsList.Clear();
+            foreach (var patient in lista)
+            {
+                PatientsList.Add(patient);
+            }
         }
 
         private bool FilterClients(object obj)
@@ -142,20 +147,13 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         private void AddClient()
         {
             ClearErrors();
-
             ValidateProperty(NewFirstName, nameof(NewFirstName));
             ValidateProperty(NewLastName, nameof(NewLastName));
             ValidateProperty(NewCompanyName, nameof(NewCompanyName));
             ValidateProperty(NewPhoneNumber, nameof(NewPhoneNumber));
             ValidateProperty(NewEmail, nameof(NewEmail));
 
-
-            if (HasErrors)
-            {
-                var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
-                _dialogService.ShowError(errors, "Błędy walidacji formularza klienta");
-                return;
-            }
+            if (CheckValidationErrors("Błędy walidacji formularza klienta")) return;
 
             var newClient = new Client
             {
@@ -167,34 +165,35 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 RegistrationDate = DateTime.Now
             };
 
-            try
-            {
-                _clientRepository.AddClient(newClient);
-                _dialogService.ShowInformation("Dodano klienta!", "Sukces");
-                WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
-
-            _ = LoadClientsAsync();
-            NewFirstName = NewLastName = NewCompanyName = NewPhoneNumber = NewEmail = string.Empty;
-            ClearErrors();
+            ExecuteSafeOperation(
+                dbAction: () => _clientRepository.AddClient(newClient),
+                onSuccess: () =>
+                {
+                    _ = LoadClientsAsync();
+                    WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
+                    NewFirstName = NewLastName = NewCompanyName = NewPhoneNumber = NewEmail = string.Empty;
+                    ClearErrors();
+                },
+                successMsg: "Dodano klienta!"
+            );
         }
 
         [RelayCommand]
         private void AddPatient()
         {
             if (SelectedClient == null) { _dialogService.ShowInformation("Wybierz właściciela!", "Informacja"); return; }
-            
-            ClearErrors();
 
+            ClearErrors();
             ValidateProperty(NewPatientName, nameof(NewPatientName));
             ValidateProperty(NewPatientSpecies, nameof(NewPatientSpecies));
             ValidateProperty(NewPatientWeight, nameof(NewPatientWeight));
 
-            if (HasErrors)
+            if (CheckValidationErrors("Błędy walidacji formularza pacjenta")) return;
+
+            string cleanWeight = NewPatientWeight.Replace(",", ".");
+            if (!decimal.TryParse(cleanWeight, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal parsedWeight) || parsedWeight <= 0)
             {
-                var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
-                _dialogService.ShowError(errors, "Błędy walidacji formularza pacjenta");
+                _dialogService.ShowError("Waga musi być liczbą większą od zera!", "Błąd walidacji");
                 return;
             }
 
@@ -205,98 +204,98 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 Species = NewPatientSpecies,
                 Breed = string.IsNullOrWhiteSpace(NewPatientBreed) ? null : NewPatientBreed,
                 Gender = NewPatientGenderIndex == 0 ? "S" : "M",
-                Weight = NewPatientWeight
+                Weight = parsedWeight
             };
 
-            try
-            {
-                _patientRepository.AddPatient(newPatient);
-                _dialogService.ShowInformation("Dodano pacjenta!", "Sukces");
-                WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); return; }
+            ExecuteSafeOperation(
+                dbAction: () => _patientRepository.AddPatient(newPatient),
+                onSuccess: () =>
+                {
+                    PatientsList.Add(newPatient);
 
-            _ = LoadPatientsAsync();
-            NewPatientName = NewPatientSpecies = NewPatientBreed = string.Empty;
-            NewPatientWeight = null;
-            ClearErrors();
+                    WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
+                    NewPatientName = NewPatientSpecies = NewPatientBreed = string.Empty;
+                    NewPatientWeight = string.Empty;
+                    ClearErrors();
+                },
+                successMsg: "Dodano pacjenta!"
+            );
         }
 
         [RelayCommand]
         private void EditClient()
         {
-            if (!_clientRepository.HasChanges())
-            {
-                _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych klientów", "Informacja");
-                return;
-            }
+            if (!_clientRepository.HasChanges()) { _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych klientów", "Informacja"); return; }
 
-            try
-            {
-                _clientRepository.SaveAllChanges();
-                _dialogService.ShowInformation("Zapisano wszystkie zmiany w klientach!", "Sukces");
-                _ = LoadClientsAsync();
-                WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd zapisu: {ex.Message}", "Błąd"); }
+            ExecuteSafeOperation(
+                dbAction: () => _clientRepository.SaveAllChanges(),
+                onSuccess: () => { _ = LoadClientsAsync(); WeakReferenceMessenger.Default.Send(new ClientChangedMessage()); },
+                successMsg: "Zapisano wszystkie zmiany w klientach!"
+            );
         }
 
         [RelayCommand]
         private void EditPatient()
         {
-            if (!_patientRepository.HasChanges())
-            {
-                _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych pacjentów", "Informacja");
-                return;
-            }
+            if (!_patientRepository.HasChanges()) { _dialogService.ShowInformation("Nie wprowadzono żadnych zmian w danych pacjentów", "Informacja"); return; }
 
+            ExecuteSafeOperation(
+                dbAction: () => _patientRepository.SaveAllChanges(),
+                onSuccess: () => { _ = LoadPatientsAsync(); WeakReferenceMessenger.Default.Send(new PatientChangedMessage()); },
+                successMsg: "Zapisano wszystkie zmiany w pacjentach!"
+            );
+        }
+
+        [RelayCommand]
+        private void RemoveClient(Client? client) =>
+            RemoveEntity(client, $"klienta {client?.DisplayName}",
+                removeAction: () => { _clientRepository.RemoveClient(client!); if (SelectedClient?.Id == client?.Id) SelectedClient = null; },
+                onSuccess: () => { _ = LoadClientsAsync(); WeakReferenceMessenger.Default.Send(new ClientChangedMessage()); },
+                errorMsg: "Nie można usunąć tego klienta, ponieważ ma przypisane zwierzęta w systemie. Najpierw usuń jego zwierzęta."
+            );
+
+        [RelayCommand]
+        private void RemovePatient(Patient? patient) =>
+            RemoveEntity(patient, $"pacjenta {patient?.Name}",
+                removeAction: () => _patientRepository.RemovePatient(patient!),
+                onSuccess: () => { _ = LoadPatientsAsync(); WeakReferenceMessenger.Default.Send(new PatientChangedMessage()); },
+                errorMsg: "Nie można usunąć pacjenta, ponieważ ma zapisaną historię wizyt."
+            );
+
+        private void ExecuteSafeOperation(Action dbAction, Action onSuccess, string? successMsg = null, string? errorMsg = null)
+        {
             try
             {
-                _patientRepository.SaveAllChanges();
-                _dialogService.ShowInformation("Zapisano wszystkie zmiany w pacjentach!", "Sukces");
-                _ = LoadPatientsAsync();
-                WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
-            }
-            catch (Exception ex) { _dialogService.ShowError($"Błąd zapisu: {ex.Message}", "Błąd"); }
-        }
+                dbAction();
+                if (!string.IsNullOrEmpty(successMsg))
+                    _dialogService.ShowInformation(successMsg, "Sukces");
 
-        [RelayCommand]
-        private void RemoveClient(Client client)
-        {
-            if (client == null) return;
-            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć klienta {client.DisplayName}?", "Potwierdzenie"))
+                onSuccess?.Invoke();
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    _clientRepository.RemoveClient(client);
-                    if (SelectedClient?.Id == client.Id) SelectedClient = null;
-                    _ = LoadClientsAsync();
-                    WeakReferenceMessenger.Default.Send(new ClientChangedMessage());
-                }
-                catch (Exception)
-                {
-                    _dialogService.ShowError("Nie można usunąć tego klienta, ponieważ ma przypisane zwierzęta w systemie. Najpierw usuń jego zwierzęta.", "Błąd usuwania");
-                }
+                _dialogService.ShowError(errorMsg ?? $"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd");
             }
         }
 
-        [RelayCommand]
-        private void RemovePatient(Patient patient)
+        private void RemoveEntity<T>(T? entity, string promptName, Action removeAction, Action onSuccess, string errorMsg)
         {
-            if (patient == null) return;
-            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć pacjenta {patient.Name}?", "Potwierdzenie"))
+            if (entity == null) return;
+            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć {promptName}?", "Potwierdzenie"))
             {
-                try
-                {
-                    _patientRepository.RemovePatient(patient);
-                    _ = LoadPatientsAsync();
-                    WeakReferenceMessenger.Default.Send(new PatientChangedMessage());
-                }
-                catch (Exception)
-                {
-                    _dialogService.ShowError("Nie można usunąć pacjenta, ponieważ ma zapisaną historię wizyt.", "Błąd usuwania");
-                }
+                ExecuteSafeOperation(removeAction, onSuccess, null, errorMsg);
             }
+        }
+
+        private bool CheckValidationErrors(string errorTitle)
+        {
+            if (HasErrors)
+            {
+                var errors = string.Join("\n", GetErrors().Select(e => e.ErrorMessage));
+                _dialogService.ShowError(errors, errorTitle);
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -121,19 +121,26 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 Recommendations = string.IsNullOrWhiteSpace(NewRecommendations) ? null : NewRecommendations
             };
 
+            ExecuteSafeOperation(
+                dbAction: () => _consultationRepository.SaveConsultation(newVisit, AddedItems),
+                onSuccess: () =>
+                {
+                    ActiveAppointment = null;
+                    WeakReferenceMessenger.Default.Send(new ConsultationEndedMessage());
+                },
+                successMsg: $"Wizyta zakończona. Suma do zapłaty: {TotalSum:N2} zł"
+            );
+        }
+
+        private void ExecuteSafeOperation(Action dbAction, Action onSuccess, string? successMsg = null, string? errorMsg = null)
+        {
             try
             {
-                _consultationRepository.SaveConsultation(newVisit, AddedItems);
-
-                ActiveAppointment = null;
-                _dialogService.ShowInformation($"Wizyta zakończona. Suma do zapłaty: {TotalSum:N2} zł", "Sukces");
-
-                WeakReferenceMessenger.Default.Send(new ConsultationEndedMessage());
+                dbAction();
+                if (!string.IsNullOrEmpty(successMsg)) _dialogService.ShowInformation(successMsg, "Sukces");
+                onSuccess?.Invoke();
             }
-            catch (Exception ex)
-            {
-                _dialogService.ShowError($"Wystąpił błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd");
-            }
+            catch (Exception ex) { _dialogService.ShowError(errorMsg ?? $"Wystąpił błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); }
         }
     }
 }

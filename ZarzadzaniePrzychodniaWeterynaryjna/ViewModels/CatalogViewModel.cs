@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ZarzadzaniePrzychodniaWeterynaryjna.Models;
@@ -38,20 +39,15 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
         {
             if (string.IsNullOrWhiteSpace(NewItemName) || (NewItemTypeIndex != 0 && string.IsNullOrWhiteSpace(NewItemUnit)))
             {
-                _dialogService.ShowError("Uzupełnij Nazwę i Jednostkę (jeśli dodajesz lek/towar)!", "Błąd");
-                return;
+                _dialogService.ShowError("Uzupełnij Nazwę i Jednostkę (jeśli dodajesz lek/towar)!", "Błąd"); return;
             }
-
             if (NewItemPrice == null || NewItemVAT == null)
             {
-                _dialogService.ShowError("Wprowadź poprawną liczbę dla Ceny i VAT! Wpisywanie tekstu jest niedozwolone.", "Błąd");
-                return;
+                _dialogService.ShowError("Wprowadź poprawną liczbę dla Ceny i VAT! Wpisywanie tekstu jest niedozwolone.", "Błąd"); return;
             }
-
             if (NewItemPrice < 0 || NewItemVAT < 0)
             {
-                _dialogService.ShowError("Cena i VAT nie mogą być ujemne!", "Błąd");
-                return;
+                _dialogService.ShowError("Cena i VAT nie mogą być ujemne!", "Błąd"); return;
             }
 
             var newItem = new CatalogItem
@@ -64,42 +60,43 @@ namespace ZarzadzaniePrzychodniaWeterynaryjna.ViewModels
                 DurationMin = NewItemTypeIndex == 0 ? NewItemDurationMin : 0
             };
 
-            try
-            {
-                _catalogRepository.AddItem(newItem);
-                WeakReferenceMessenger.Default.Send(new CatalogChangedMessage());
-                _dialogService.ShowInformation("Dodano pozycję!", "Sukces");
-            }
-            catch (Exception ex)
-            {
-                _dialogService.ShowError($"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd");
-                return;
-            }
-
-            LoadCatalog();
-            NewItemName = NewItemUnit = string.Empty;
-            NewItemPrice = null;
-            NewItemDurationMin = 15;
+            ExecuteSafeOperation(
+                dbAction: () => _catalogRepository.AddItem(newItem),
+                onSuccess: () =>
+                {
+                    LoadCatalog();
+                    WeakReferenceMessenger.Default.Send(new CatalogChangedMessage());
+                    NewItemName = NewItemUnit = string.Empty;
+                    NewItemPrice = null; NewItemDurationMin = 15;
+                },
+                successMsg: "Dodano pozycję!"
+            );
         }
 
         [RelayCommand]
-        private void RemoveCatalogItem(CatalogItem item)
-        {
-            if (item == null) return;
+        private void RemoveCatalogItem(CatalogItem item) =>
+            RemoveEntity(item, $"Czy na pewno chcesz usunąć pozycję '{item?.Name}' z katalogu?",
+                removeAction: () => _catalogRepository.RemoveItem(item!),
+                onSuccess: () => { LoadCatalog(); WeakReferenceMessenger.Default.Send(new CatalogChangedMessage()); },
+                errorMsg: "Nie można usunąć tej pozycji. Prawdopodobnie jest używana w historii wizyt."
+            );
 
-            if (_dialogService.AskQuestion($"Czy na pewno chcesz usunąć pozycję '{item.Name}' z katalogu?", "Potwierdzenie"))
+        private void ExecuteSafeOperation(Action dbAction, Action onSuccess, string? successMsg = null, string? errorMsg = null)
+        {
+            try
             {
-                try
-                {
-                    _catalogRepository.RemoveItem(item);
-                    LoadCatalog();
-                    WeakReferenceMessenger.Default.Send(new CatalogChangedMessage());
-                }
-                catch (System.Exception ex)
-                {
-                    _dialogService.ShowError(ex.Message, "Błąd usuwania");
-                }
+                dbAction();
+                if (!string.IsNullOrEmpty(successMsg)) _dialogService.ShowInformation(successMsg, "Sukces");
+                onSuccess?.Invoke();
             }
+            catch (Exception ex) { _dialogService.ShowError(errorMsg ?? $"Błąd: {ex.InnerException?.Message ?? ex.Message}", "Błąd"); }
+        }
+
+        private void RemoveEntity<T>(T entity, string promptMessage, Action removeAction, Action onSuccess, string errorMsg)
+        {
+            if (entity == null) return;
+            if (_dialogService.AskQuestion(promptMessage, "Potwierdzenie"))
+                ExecuteSafeOperation(removeAction, onSuccess, null, errorMsg);
         }
     }
 }
